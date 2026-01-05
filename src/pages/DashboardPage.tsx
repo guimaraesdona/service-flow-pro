@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { TrendingUp, ClipboardList, Users } from "lucide-react";
+import { TrendingUp, ClipboardList, Users, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const chartData = [
@@ -24,14 +26,32 @@ const topClients = [
 type FilterPeriod = "day" | "week" | "month";
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<FilterPeriod>("month");
 
   const totalMonth = 12450.0;
   const totalOrders = 47;
 
+  const handleLogout = () => {
+    // TODO: Implementar lógica de logout com autenticação
+    navigate("/");
+  };
+
   return (
     <div className="page-container bg-background">
-      <TopNav title="Dashboard" />
+      <TopNav
+        title="Dashboard"
+        rightAction={
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
+        }
+      />
 
       <div className="content-container space-y-6">
         {/* Summary Cards */}

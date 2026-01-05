@@ -13,10 +13,13 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 // App pages
 import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
+import ClientDetailPage from "./pages/ClientDetailPage";
 import NewClientPage from "./pages/NewClientPage";
 import ServicesPage from "./pages/ServicesPage";
+import ServiceDetailPage from "./pages/ServiceDetailPage";
 import NewServicePage from "./pages/NewServicePage";
 import OrdersPage from "./pages/OrdersPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
 import NewOrderPage from "./pages/NewOrderPage";
 import NotificationsPage from "./pages/NotificationsPage";
 
@@ -41,13 +44,13 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/clientes" element={<ClientsPage />} />
             <Route path="/clientes/novo" element={<NewClientPage />} />
-            <Route path="/clientes/:id" element={<ClientsPage />} />
+            <Route path="/clientes/:id" element={<ClientDetailPage />} />
             <Route path="/servicos" element={<ServicesPage />} />
             <Route path="/servicos/novo" element={<NewServicePage />} />
-            <Route path="/servicos/:id" element={<ServicesPage />} />
+            <Route path="/servicos/:id" element={<ServiceDetailPage />} />
             <Route path="/ordens" element={<OrdersPage />} />
             <Route path="/ordens/nova" element={<NewOrderPage />} />
-            <Route path="/ordens/:id" element={<OrdersPage />} />
+            <Route path="/ordens/:id" element={<OrderDetailPage />} />
             <Route path="/notificacoes" element={<NotificationsPage />} />
           </Route>
 
