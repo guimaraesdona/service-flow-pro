@@ -1,5 +1,5 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Users, Wrench, Home, ClipboardList, Bell, LogOut, LayoutDashboard, DollarSign, Settings } from "lucide-react";
+import { Users, Wrench, ClipboardList, LogOut, LayoutDashboard, DollarSign, Settings, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -7,6 +7,9 @@ const navItems = [
   { path: "/clientes", label: "Clientes", icon: Users },
   { path: "/servicos", label: "Serviços", icon: Wrench },
   { path: "/ordens", label: "Ordens de Serviço", icon: ClipboardList },
+  { path: "/financeiro", label: "Financeiro", icon: DollarSign },
+  { path: "/relatorios", label: "Relatórios", icon: FileText },
+  { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 export function Sidebar() {
