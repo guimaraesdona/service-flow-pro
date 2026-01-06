@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { TrendingUp, ClipboardList, Users, LogOut } from "lucide-react";
+import { TrendingUp, ClipboardList, Users, LogOut, Wrench, Clock, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,15 @@ const topClients = [
 
 type FilterPeriod = "day" | "week" | "month";
 
+// Stats for desktop view
+const desktopStats = [
+  { label: "Total de Clientes", value: "24", icon: Users, color: "text-primary" },
+  { label: "Serviços Cadastrados", value: "12", icon: Wrench, color: "text-emerald-500" },
+  { label: "Ordens de Serviço", value: "47", icon: ClipboardList, color: "text-blue-500" },
+  { label: "Pendentes", value: "5", icon: Clock, color: "text-amber-500" },
+  { label: "Em Andamento", value: "8", icon: Activity, color: "text-violet-500" },
+];
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<FilterPeriod>("month");
@@ -33,27 +43,69 @@ export default function DashboardPage() {
   const totalOrders = 47;
 
   const handleLogout = () => {
-    // TODO: Implementar lógica de logout com autenticação
     navigate("/");
   };
 
   return (
     <div className="page-container bg-background">
-      <TopNav
-        title="Dashboard"
-        rightAction={
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
-        }
-      />
+      {/* Desktop Header */}
+      <DesktopHeader title="Dashboard" />
+      
+      {/* Mobile TopNav */}
+      <div className="lg:hidden">
+        <TopNav
+          title="Dashboard"
+          rightAction={
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          }
+        />
+      </div>
 
-      <div className="content-container space-y-6">
+      {/* Desktop Content */}
+      <div className="hidden lg:block p-6 space-y-6">
+        {/* Desktop Title Section */}
+        <div className="animate-fade-in">
+          <h2 className="text-2xl font-bold text-foreground">Visão Geral</h2>
+          <p className="text-muted-foreground">Acompanhe suas ordens de serviço e estatísticas</p>
+        </div>
+
+        {/* Desktop Stats Cards */}
+        <div className="grid grid-cols-5 gap-4 animate-slide-up">
+          {desktopStats.map((stat, index) => (
+            <div 
+              key={stat.label}
+              className="card-elevated p-4"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">{stat.label}</span>
+                <stat.icon className={cn("w-5 h-5", stat.color)} />
+              </div>
+              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Recent Orders */}
+        <div className="card-elevated animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          <div className="p-4 border-b border-border/50">
+            <h3 className="text-lg font-semibold text-foreground">Ordens de Serviço Recentes</h3>
+          </div>
+          <div className="p-8 text-center text-muted-foreground">
+            Nenhuma ordem de serviço encontrada
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Content */}
+      <div className="lg:hidden content-container space-y-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-4 animate-slide-up">
           <div className="card-elevated p-4">
