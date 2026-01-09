@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
 import { 
   User, 
   Mail, 
@@ -21,7 +22,14 @@ import {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Initialize from localStorage or system preference synchronously
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      return savedTheme === "dark";
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
   const [userData, setUserData] = useState({
     name: "Empresa Exemplo LTDA",
@@ -29,17 +37,6 @@ export default function SettingsPage() {
     phone: "(11) 99999-0000",
     document: "12.345.678/0001-00",
   });
-
-  useEffect(() => {
-    // Check system preference or saved preference
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
 
   const toggleDarkMode = (enabled: boolean) => {
     setIsDarkMode(enabled);
@@ -175,11 +172,16 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Custom Fields Section */}
+        <div className="lg:col-span-2">
+          <CustomFieldsSettings />
+        </div>
+
         {/* Actions */}
-        <div className="space-y-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+        <div className="space-y-3 animate-slide-up lg:col-span-2" style={{ animationDelay: "0.2s" }}>
           <Button
             onClick={handleSave}
-            className="w-full btn-primary"
+            className="w-full lg:w-auto btn-primary"
             disabled={isLoading}
           >
             <Save className="w-4 h-4 mr-2" />
@@ -189,7 +191,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="w-full"
+            className="w-full lg:w-auto lg:ml-3"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sair da Conta
