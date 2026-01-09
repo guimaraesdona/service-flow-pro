@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Camera, Plus, Minus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { 
+  CustomFieldsManager, 
+  CustomField, 
+  CustomFieldValue,
+  getStoredCustomFields 
+} from "@/components/order/CustomFieldsManager";
 
 interface ServiceItem {
   id: string;
@@ -39,6 +46,12 @@ export default function NewOrderPage() {
   const [expectedDate, setExpectedDate] = useState("");
   const [observations, setObservations] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+
+  useEffect(() => {
+    setCustomFields(getStoredCustomFields());
+  }, []);
 
   const addService = (serviceId: string) => {
     const service = availableServices.find((s) => s.id === serviceId);
@@ -98,69 +111,79 @@ export default function NewOrderPage() {
 
   return (
     <div className="page-container bg-background">
-      <TopNav title="Nova Ordem" showBack />
+      {/* Mobile Header */}
+      <div className="lg:hidden">
+        <TopNav title="Nova Ordem" showBack />
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        <DesktopHeader title="Nova Ordem de Serviço" />
+      </div>
 
       <div className="content-container">
-        <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up">
-          {/* Image */}
-          <div className="flex justify-center mb-6">
-            <button
-              type="button"
-              className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors"
-            >
-              <Camera className="w-8 h-8 text-muted-foreground" />
-            </button>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
+          {/* Left Column - Basic Info */}
+          <div className="space-y-5">
+            {/* Image */}
+            <div className="flex justify-center mb-6 lg:justify-start">
+              <button
+                type="button"
+                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors"
+              >
+                <Camera className="w-8 h-8 text-muted-foreground" />
+              </button>
+            </div>
 
-          {/* Client */}
-          <div className="space-y-2">
-            <Label>Cliente *</Label>
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger className="input-field">
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Expected Date */}
-          <div className="space-y-2">
-            <Label htmlFor="expectedDate">Data Prevista</Label>
-            <Input
-              id="expectedDate"
-              type="date"
-              value={expectedDate}
-              onChange={(e) => setExpectedDate(e.target.value)}
-              className="input-field"
-            />
-          </div>
-
-          {/* Add Services */}
-          <div className="space-y-2">
-            <Label>Adicionar Serviços *</Label>
-            <Select onValueChange={addService}>
-              <SelectTrigger className="input-field">
-                <SelectValue placeholder="Selecione um serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableServices.map((service) => (
-                  <SelectItem key={service.id} value={service.id}>
-                    {service.name} - R$ {service.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Selected Services */}
-          {services.length > 0 && (
+            {/* Client */}
             <div className="space-y-2">
+              <Label>Cliente *</Label>
+              <Select value={selectedClient} onValueChange={setSelectedClient}>
+                <SelectTrigger className="input-field">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Expected Date */}
+            <div className="space-y-2">
+              <Label htmlFor="expectedDate">Data Prevista</Label>
+              <Input
+                id="expectedDate"
+                type="date"
+                value={expectedDate}
+                onChange={(e) => setExpectedDate(e.target.value)}
+                className="input-field"
+              />
+            </div>
+
+            {/* Add Services */}
+            <div className="space-y-2">
+              <Label>Adicionar Serviços *</Label>
+              <Select onValueChange={addService}>
+                <SelectTrigger className="input-field">
+                  <SelectValue placeholder="Selecione um serviço" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableServices.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} - R$ {service.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Selected Services */}
+            {services.length > 0 && (
+              <div className="space-y-2">
               <Label>Serviços Selecionados</Label>
               <div className="space-y-2">
                 {services.map((service) => (
@@ -204,35 +227,48 @@ export default function NewOrderPage() {
             </div>
           )}
 
-          {/* Total */}
-          <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Valor Total</span>
-              <span className="text-xl font-bold text-primary">
-                R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </span>
+            {/* Total */}
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Valor Total</span>
+                <span className="text-xl font-bold text-primary">
+                  R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Observations */}
-          <div className="space-y-2">
-            <Label htmlFor="observations">Observações</Label>
-            <Textarea
-              id="observations"
-              placeholder="Anotações adicionais..."
-              value={observations}
-              onChange={(e) => setObservations(e.target.value)}
-              className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
-            />
-          </div>
+          {/* Right Column - Additional Info */}
+          <div className="space-y-5">
+            {/* Observations */}
+            <div className="space-y-2">
+              <Label htmlFor="observations">Observações</Label>
+              <Textarea
+                id="observations"
+                placeholder="Anotações adicionais..."
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
+              />
+            </div>
 
-          <Button
-            type="submit"
+            {/* Custom Fields */}
+            <CustomFieldsManager
+              fields={customFields}
+              onFieldsChange={setCustomFields}
+              values={customFieldValues}
+              onValuesChange={setCustomFieldValues}
+              editMode={true}
+            />
+
+            <Button
+              type="submit"
             className="w-full btn-primary mt-6"
             disabled={isLoading}
           >
-            {isLoading ? "Salvando..." : "Cadastrar"}
-          </Button>
+              {isLoading ? "Salvando..." : "Cadastrar"}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

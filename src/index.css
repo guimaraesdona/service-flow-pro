@@ -146,7 +146,7 @@
   }
 
   .content-container {
-    @apply px-4 py-6 max-w-lg mx-auto;
+    @apply px-4 py-6 max-w-lg mx-auto lg:max-w-none lg:px-8;
   }
 
   .input-field {

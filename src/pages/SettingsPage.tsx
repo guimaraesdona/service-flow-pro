@@ -83,7 +83,7 @@ export default function SettingsPage() {
         <DesktopHeader title="Configurações" />
       </div>
 
-      <div className="content-container lg:max-w-2xl">
+      <div className="content-container lg:grid lg:grid-cols-2 lg:gap-8">
         {/* Profile Section */}
         <div className="card-elevated p-6 mb-6 animate-fade-in">
           <div className="flex items-center gap-4 mb-6">
