@@ -7,7 +7,7 @@ interface DesktopHeaderProps {
 
 export function DesktopHeader({ title }: DesktopHeaderProps) {
   return (
-    <header className="hidden lg:flex items-center justify-between h-16 px-6 bg-card border-b border-border/50">
+    <header className="hidden lg:flex items-center justify-between h-16 px-8 bg-card border-b border-border/50 w-full">
       <h1 className="text-lg font-semibold text-foreground">{title}</h1>
       
       <div className="flex items-center gap-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
@@ -9,12 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { 
-  CustomFieldsManager, 
-  CustomField, 
-  CustomFieldValue,
-  getStoredCustomFields 
-} from "@/components/order/CustomFieldsManager";
+import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 interface ServiceItem {
   id: string;
@@ -46,12 +41,7 @@ export default function NewOrderPage() {
   const [expectedDate, setExpectedDate] = useState("");
   const [observations, setObservations] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
-
-  useEffect(() => {
-    setCustomFields(getStoredCustomFields());
-  }, []);
 
   const addService = (serviceId: string) => {
     const service = availableServices.find((s) => s.id === serviceId);
@@ -253,12 +243,10 @@ export default function NewOrderPage() {
             </div>
 
             {/* Custom Fields */}
-            <CustomFieldsManager
-              fields={customFields}
-              onFieldsChange={setCustomFields}
+            <CustomFieldsRenderer
+              entityType="order"
               values={customFieldValues}
               onValuesChange={setCustomFieldValues}
-              editMode={true}
             />
 
             <Button

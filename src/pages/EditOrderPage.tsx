@@ -10,12 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { OrderStatus } from "@/components/ui/StatusBadge";
-import { 
-  CustomFieldsManager, 
-  CustomField, 
-  CustomFieldValue,
-  getStoredCustomFields 
-} from "@/components/order/CustomFieldsManager";
+import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 interface ServiceItem {
   id: string;
@@ -123,12 +118,7 @@ export default function EditOrderPage() {
   const [observations, setObservations] = useState("");
   const [status, setStatus] = useState<OrderStatus>("start");
   const [services, setServices] = useState<ServiceItem[]>([]);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
-
-  useEffect(() => {
-    setCustomFields(getStoredCustomFields());
-  }, []);
 
   useEffect(() => {
     if (id && mockOrders[id]) {
@@ -380,12 +370,10 @@ export default function EditOrderPage() {
             </div>
 
             {/* Custom Fields */}
-            <CustomFieldsManager
-              fields={customFields}
-              onFieldsChange={setCustomFields}
+            <CustomFieldsRenderer
+              entityType="order"
               values={customFieldValues}
               onValuesChange={setCustomFieldValues}
-              editMode={true}
             />
 
             <Button
