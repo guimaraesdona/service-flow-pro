@@ -21,7 +21,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "status-badge border",
+        "status-badge border whitespace-nowrap justify-center leading-none py-0 pt-[3px] pb-[1px]",
         config.className,
         className
       )}

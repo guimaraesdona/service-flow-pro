@@ -50,8 +50,8 @@ export default function ClientsPage() {
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader 
-          title="Clientes" 
+        <DesktopHeader
+          title="Clientes"
           actions={
             <Link to="/clientes/novo">
               <Button className="btn-primary">

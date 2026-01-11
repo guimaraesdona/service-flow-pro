@@ -66,8 +66,8 @@ export default function OrdersPage() {
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader 
-          title="Ordens de Serviço" 
+        <DesktopHeader
+          title="Ordens de Serviço"
           actions={
             <Link to="/ordens/nova">
               <Button className="btn-primary">
@@ -111,9 +111,9 @@ export default function OrdersPage() {
                   <p className="text-sm text-muted-foreground truncate">{order.services.join(", ")}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <StatusBadge status={order.status} />
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center justify-center gap-1 text-xs text-muted-foreground whitespace-nowrap leading-none">
                       <Calendar className="w-3 h-3" />
-                      {formatDate(order.date)}
+                      <span className="mt-[3px]">{formatDate(order.date)}</span>
                     </span>
                   </div>
                 </div>
