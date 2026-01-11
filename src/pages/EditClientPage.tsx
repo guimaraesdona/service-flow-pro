@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatPhone, formatDocument } from "@/lib/formatters";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { ArrowRight, Camera } from "lucide-react";
@@ -6,24 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  document: string;
-  birthDate: string;
-  address: {
-    cep: string;
-    street: string;
-    number: string;
-    complement?: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-  };
-}
+import { AddressManager } from "@/components/client/AddressManager";
+import { Client, Address } from "@/types";
 
 const mockClients: Record<string, Client> = {
   "1": {
@@ -33,80 +18,26 @@ const mockClients: Record<string, Client> = {
     phone: "(11) 99999-1111",
     document: "123.456.789-00",
     birthDate: "1985-03-15",
-    address: {
-      cep: "01310-100",
-      street: "Av. Paulista",
-      number: "1000",
-      complement: "Sala 501",
-      neighborhood: "Bela Vista",
-      city: "São Paulo",
-      state: "SP",
-    },
+    addresses: [
+      {
+        id: "1",
+        label: "Casa",
+        cep: "01310-100",
+        street: "Av. Paulista",
+        number: "1000",
+        complement: "Sala 501",
+        neighborhood: "Bela Vista",
+        city: "São Paulo",
+        state: "SP",
+        isDefault: true
+      }
+    ]
   },
-  "2": {
-    id: "2",
-    name: "João Santos",
-    email: "joao@email.com",
-    phone: "(11) 99999-2222",
-    document: "987.654.321-00",
-    birthDate: "1990-07-20",
-    address: {
-      cep: "04538-132",
-      street: "Rua Funchal",
-      number: "418",
-      neighborhood: "Vila Olímpia",
-      city: "São Paulo",
-      state: "SP",
-    },
-  },
-  "3": {
-    id: "3",
-    name: "Ana Oliveira",
-    email: "ana@email.com",
-    phone: "(11) 99999-3333",
-    document: "456.789.123-00",
-    birthDate: "1988-11-10",
-    address: {
-      cep: "01311-000",
-      street: "Rua Augusta",
-      number: "200",
-      neighborhood: "Consolação",
-      city: "São Paulo",
-      state: "SP",
-    },
-  },
-  "4": {
-    id: "4",
-    name: "Carlos Mendes",
-    email: "carlos@email.com",
-    phone: "(11) 99999-4444",
-    document: "789.123.456-00",
-    birthDate: "1982-05-25",
-    address: {
-      cep: "04543-011",
-      street: "Av. Engenheiro Luiz Carlos Berrini",
-      number: "1500",
-      neighborhood: "Cidade Monções",
-      city: "São Paulo",
-      state: "SP",
-    },
-  },
-  "5": {
-    id: "5",
-    name: "Paula Costa",
-    email: "paula@email.com",
-    phone: "(11) 99999-5555",
-    document: "321.654.987-00",
-    birthDate: "1995-09-08",
-    address: {
-      cep: "01310-200",
-      street: "Rua Haddock Lobo",
-      number: "595",
-      neighborhood: "Cerqueira César",
-      city: "São Paulo",
-      state: "SP",
-    },
-  },
+  // ... mock data simplified
+  "2": { id: "2", name: "João Santos", email: "joao@email.com", phone: "(11) 99999-2222", document: "987.654.321-00", birthDate: "1990-07-20", addresses: [] },
+  "3": { id: "3", name: "Ana Oliveira", email: "ana@email.com", phone: "(11) 99999-3333", document: "456.789.123-00", birthDate: "1988-11-10", addresses: [] },
+  "4": { id: "4", name: "Carlos Mendes", email: "carlos@email.com", phone: "(11) 99999-4444", document: "789.123.456-00", birthDate: "1982-05-25", addresses: [] },
+  "5": { id: "5", name: "Paula Costa", email: "paula@email.com", phone: "(11) 99999-5555", document: "321.654.987-00", birthDate: "1995-09-08", addresses: [] },
 };
 
 export default function EditClientPage() {
@@ -121,14 +52,9 @@ export default function EditClientPage() {
     document: "",
     birthDate: "",
     phone: "",
-    cep: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: "",
   });
+
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
   useEffect(() => {
     if (id && mockClients[id]) {
@@ -139,14 +65,8 @@ export default function EditClientPage() {
         document: client.document,
         birthDate: client.birthDate,
         phone: client.phone,
-        cep: client.address.cep,
-        street: client.address.street,
-        number: client.address.number,
-        complement: client.address.complement || "",
-        neighborhood: client.address.neighborhood,
-        city: client.address.city,
-        state: client.address.state,
       });
+      setAddresses(client.addresses);
     }
   }, [id]);
 
@@ -254,7 +174,7 @@ export default function EditClientPage() {
                     id="document"
                     placeholder="000.000.000-00"
                     value={formData.document}
-                    onChange={(e) => updateField("document", e.target.value)}
+                    onChange={(e) => updateField("document", formatDocument(e.target.value))}
                     className="input-field"
                   />
                 </div>
@@ -277,7 +197,7 @@ export default function EditClientPage() {
                   type="tel"
                   placeholder="(00) 00000-0000"
                   value={formData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
+                  onChange={(e) => updateField("phone", formatPhone(e.target.value))}
                   className="input-field"
                 />
               </div>
@@ -291,84 +211,7 @@ export default function EditClientPage() {
 
           {step === 2 && (
             <div className="space-y-4 animate-slide-up">
-              <div className="space-y-2">
-                <Label htmlFor="cep">CEP</Label>
-                <Input
-                  id="cep"
-                  placeholder="00000-000"
-                  value={formData.cep}
-                  onChange={(e) => updateField("cep", e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="street">Logradouro</Label>
-                <Input
-                  id="street"
-                  placeholder="Rua, Avenida..."
-                  value={formData.street}
-                  onChange={(e) => updateField("street", e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="number">Número</Label>
-                  <Input
-                    id="number"
-                    placeholder="000"
-                    value={formData.number}
-                    onChange={(e) => updateField("number", e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="complement">Complemento</Label>
-                  <Input
-                    id="complement"
-                    placeholder="Apto, Sala..."
-                    value={formData.complement}
-                    onChange={(e) => updateField("complement", e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="neighborhood">Bairro</Label>
-                <Input
-                  id="neighborhood"
-                  placeholder="Seu bairro"
-                  value={formData.neighborhood}
-                  onChange={(e) => updateField("neighborhood", e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input
-                    id="city"
-                    placeholder="Sua cidade"
-                    value={formData.city}
-                    onChange={(e) => updateField("city", e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado</Label>
-                  <Input
-                    id="state"
-                    placeholder="UF"
-                    value={formData.state}
-                    onChange={(e) => updateField("state", e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-              </div>
+              <AddressManager addresses={addresses} onAddressesChange={setAddresses} />
 
               <div className="flex gap-3 mt-6">
                 <Button

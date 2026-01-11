@@ -48,8 +48,8 @@ export default function ServicesPage() {
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader 
-          title="Serviços" 
+        <DesktopHeader
+          title="Serviços"
           actions={
             <Link to="/servicos/novo">
               <Button className="btn-primary">

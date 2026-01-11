@@ -1,21 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, OrderStatus } from "@/components/ui/StatusBadge";
-import { Edit, User, Calendar, DollarSign, FileText, Wrench } from "lucide-react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Edit, User, Calendar, DollarSign, FileText, Wrench, Printer } from "lucide-react";
+import { ServiceOrder, OrderStatus } from "@/types";
 
-interface Order {
-  id: string;
-  clientName: string;
-  clientId: string;
-  services: { name: string; quantity: number; price: number }[];
-  total: number;
-  date: string;
-  status: OrderStatus;
-  observations?: string;
-}
-
-const mockOrders: Record<string, Order> = {
+const mockOrders: Record<string, ServiceOrder> = {
   "001": {
     id: "001",
     clientName: "Maria Silva",
@@ -24,7 +14,9 @@ const mockOrders: Record<string, Order> = {
     total: 150.0,
     date: "2025-01-05",
     status: "progress",
-    observations: "Cliente solicitou agendamento para o período da tarde.",
+    priority: "high",
+    description: "Manutenção anual do sistema de ar condicionado. Cliente solicitou agendamento para o período da tarde.",
+    scheduledAt: "2025-01-10T14:00:00"
   },
   "002": {
     id: "002",
@@ -37,7 +29,9 @@ const mockOrders: Record<string, Order> = {
     total: 600.0,
     date: "2025-01-04",
     status: "waiting",
-    observations: "Aguardando aprovação do orçamento pelo cliente.",
+    priority: "normal",
+    discount: 50.0,
+    description: "Aguardando aprovação do orçamento pelo cliente."
   },
   "003": {
     id: "003",
@@ -47,16 +41,18 @@ const mockOrders: Record<string, Order> = {
     total: 180.0,
     date: "2025-01-03",
     status: "finished",
+    priority: "low"
   },
   "004": {
     id: "004",
     clientName: "Carlos Mendes",
     clientId: "4",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 120.0 }],
-    total: 240.0,
+    services: [{ name: "Montagem de Móveis", quantity: 2, price: 60.0 }], // Fixed price to match total 120 (2 * 60)
+    total: 120.0,
     date: "2025-01-02",
     status: "start",
-    observations: "Montagem de 2 guarda-roupas.",
+    priority: "normal",
+    description: "Montagem de 2 guarda-roupas."
   },
   "005": {
     id: "005",
@@ -66,7 +62,8 @@ const mockOrders: Record<string, Order> = {
     total: 350.0,
     date: "2025-01-01",
     status: "cancelled",
-    observations: "Cliente cancelou por motivos pessoais.",
+    priority: "high",
+    description: "Cliente cancelou por motivos pessoais."
   },
 };
 
@@ -111,14 +108,24 @@ export default function OrderDetailPage() {
         title={`Ordem #${order.id}`}
         showBack
         rightAction={
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => navigate(`/ordens/${id}/editar`)}
-            className="text-primary hover:text-primary/80"
-          >
-            <Edit className="w-5 h-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => navigate(`/ordens/${id}/imprimir`)}
+              className="text-primary hover:text-primary/80"
+            >
+              <Printer className="w-5 h-5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => navigate(`/ordens/${id}/editar`)}
+              className="text-primary hover:text-primary/80"
+            >
+              <Edit className="w-5 h-5" />
+            </Button>
+          </div>
         }
       />
 
@@ -128,7 +135,12 @@ export default function OrderDetailPage() {
           <div className={`w-20 h-20 rounded-xl ${statusColors[order.status]} flex items-center justify-center mx-auto mb-4`}>
             <span className="text-white text-xl font-bold">#{order.id}</span>
           </div>
-          <StatusBadge status={order.status} />
+          <div className="flex flex-col items-center gap-2">
+            <StatusBadge status={order.status} />
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Prioridade: {order.priority}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground mt-2">{formatDate(order.date)}</p>
         </div>
 
@@ -187,8 +199,8 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Observations */}
-        {order.observations && (
+        {/* Description/Observations */}
+        {order.description && (
           <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.25s" }}>
             <h3 className="text-sm font-semibold text-foreground mb-3">Observações</h3>
             <div className="flex items-start gap-3">
@@ -196,7 +208,7 @@ export default function OrderDetailPage() {
                 <FileText className="w-4 h-4 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {order.observations}
+                {order.description}
               </p>
             </div>
           </div>

@@ -9,26 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { OrderStatus } from "@/components/ui/StatusBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface Order {
-  id: string;
-  clientName: string;
-  clientId: string;
-  services: { name: string; quantity: number; price: number; id?: string }[];
-  total: number;
-  date: string;
-  status: OrderStatus;
-  observations?: string;
-}
+import { ServiceOrder, ServiceItem, OrderStatus, OrderPriority } from "@/types";
 
 const availableServices = [
   { id: "1", name: "Manutenção Preventiva", price: 150.0 },
@@ -39,11 +22,11 @@ const availableServices = [
 ];
 
 const clients = [
-  { id: "1", name: "Maria Silva" },
-  { id: "2", name: "João Santos" },
-  { id: "3", name: "Ana Oliveira" },
-  { id: "4", name: "Carlos Mendes" },
-  { id: "5", name: "Paula Costa" },
+  { id: "1", name: "Maria Silva", addresses: [{ id: "1", label: "Casa", full: "Av. Paulista, 1000 - Bela Vista, SP" }, { id: "2", label: "Trabalho", full: "Rua Augusta, 500 - Consolação, SP" }] },
+  { id: "2", name: "João Santos", addresses: [{ id: "3", label: "Residencial", full: "Rua Funchal, 418 - Vila Olímpia, SP" }] },
+  { id: "3", name: "Ana Oliveira", addresses: [{ id: "4", label: "Casa", full: "Rua Augusta, 200 - Consolação, SP" }] },
+  { id: "4", name: "Carlos Mendes", addresses: [] },
+  { id: "5", name: "Paula Costa", addresses: [{ id: "5", label: "Apartamento", full: "Rua Haddock Lobo, 595 - Cerqueira César, SP" }] },
 ];
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
@@ -54,58 +37,71 @@ const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "finished", label: "Finalizado" },
 ];
 
-const mockOrders: Record<string, Order> = {
+const priorityOptions: { value: OrderPriority; label: string }[] = [
+  { value: "low", label: "Baixa" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "Alta" },
+];
+
+const mockOrders: Record<string, ServiceOrder> = {
   "001": {
     id: "001",
     clientName: "Maria Silva",
     clientId: "1",
-    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0, id: "1" }],
+    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
     total: 150.0,
     date: "2025-01-05",
     status: "progress",
-    observations: "Cliente solicitou agendamento para o período da tarde.",
+    priority: "high",
+    description: "Manutenção anual do sistema de ar condicionado. Cliente solicitou agendamento para o período da tarde.",
+    scheduledAt: "2025-01-10T14:00:00"
   },
   "002": {
     id: "002",
     clientName: "João Santos",
     clientId: "2",
     services: [
-      { name: "Instalação Elétrica", quantity: 1, price: 250.0, id: "2" },
-      { name: "Pintura", quantity: 1, price: 350.0, id: "4" },
+      { name: "Instalação Elétrica", quantity: 1, price: 250.0 },
+      { name: "Pintura", quantity: 1, price: 350.0 },
     ],
     total: 600.0,
     date: "2025-01-04",
     status: "waiting",
-    observations: "Aguardando aprovação do orçamento pelo cliente.",
+    priority: "normal",
+    discount: 50.0,
+    description: "Aguardando aprovação do orçamento pelo cliente."
   },
   "003": {
     id: "003",
     clientName: "Ana Oliveira",
     clientId: "3",
-    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0, id: "3" }],
+    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
     total: 180.0,
     date: "2025-01-03",
     status: "finished",
+    priority: "low"
   },
   "004": {
     id: "004",
     clientName: "Carlos Mendes",
     clientId: "4",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 120.0, id: "5" }],
+    services: [{ name: "Montagem de Móveis", quantity: 2, price: 120.0 }],
     total: 240.0,
     date: "2025-01-02",
     status: "start",
-    observations: "Montagem de 2 guarda-roupas.",
+    priority: "normal",
+    description: "Montagem de 2 guarda-roupas."
   },
   "005": {
     id: "005",
     clientName: "Paula Costa",
     clientId: "5",
-    services: [{ name: "Pintura", quantity: 1, price: 350.0, id: "4" }],
+    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
     total: 350.0,
     date: "2025-01-01",
     status: "cancelled",
-    observations: "Cliente cancelou por motivos pessoais.",
+    priority: "high",
+    description: "Cliente cancelou por motivos pessoais."
   },
 };
 
@@ -114,9 +110,13 @@ export default function EditOrderPage() {
   const { id } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
-  const [expectedDate, setExpectedDate] = useState("");
-  const [observations, setObservations] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [description, setDescription] = useState("");
   const [status, setStatus] = useState<OrderStatus>("start");
+  const [priority, setPriority] = useState<OrderPriority>("normal");
+  const [discount, setDiscount] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
 
@@ -124,19 +124,19 @@ export default function EditOrderPage() {
     if (id && mockOrders[id]) {
       const order = mockOrders[id];
       setSelectedClient(order.clientId);
-      setExpectedDate(order.date);
-      setObservations(order.observations || "");
+      if (order.scheduledAt) {
+        setScheduledDate(order.scheduledAt.split("T")[0]);
+        setScheduledTime(order.scheduledAt.split("T")[1].substring(0, 5));
+      }
+      setDescription(order.description || "");
       setStatus(order.status);
-      setServices(
-        order.services.map((s, index) => ({
-          id: s.id || index.toString(),
-          name: s.name,
-          price: s.price,
-          quantity: s.quantity,
-        }))
-      );
+      setPriority(order.priority);
+      setDiscount(order.discount ? order.discount.toString() : "");
+      setServices(order.services);
     }
   }, [id]);
+
+  const selectedClientData = clients.find(c => c.id === selectedClient);
 
   const order = id ? mockOrders[id] : null;
 
@@ -157,33 +157,35 @@ export default function EditOrderPage() {
     const service = availableServices.find((s) => s.id === serviceId);
     if (!service) return;
 
-    const existing = services.find((s) => s.id === serviceId);
+    const existing = services.find((s) => s.name === service.name);
     if (existing) {
       setServices(
         services.map((s) =>
-          s.id === serviceId ? { ...s, quantity: s.quantity + 1 } : s
+          s.name === service.name ? { ...s, quantity: s.quantity + 1 } : s
         )
       );
     } else {
-      setServices([...services, { ...service, quantity: 1 }]);
+      setServices([...services, { name: service.name, price: service.price, quantity: 1 }]);
     }
   };
 
-  const updateQuantity = (serviceId: string, delta: number) => {
+  const updateQuantity = (serviceName: string, delta: number) => {
     setServices(
       services
         .map((s) =>
-          s.id === serviceId ? { ...s, quantity: Math.max(0, s.quantity + delta) } : s
+          s.name === serviceName ? { ...s, quantity: Math.max(0, s.quantity + delta) } : s
         )
         .filter((s) => s.quantity > 0)
     );
   };
 
-  const removeService = (serviceId: string) => {
-    setServices(services.filter((s) => s.id !== serviceId));
+  const removeService = (serviceName: string) => {
+    setServices(services.filter((s) => s.name !== serviceName));
   };
 
-  const total = services.reduce((acc, s) => acc + s.price * s.quantity, 0);
+  const subtotal = services.reduce((acc, s) => acc + s.price * s.quantity, 0);
+  const discountValue = parseFloat(discount) || 0;
+  const total = Math.max(0, subtotal - discountValue);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,27 +237,44 @@ export default function EditOrderPage() {
               </button>
             </div>
 
-            {/* Status */}
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as OrderStatus)}>
-                <SelectTrigger className="input-field">
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Status & Priority */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={(value) => setStatus(value as OrderStatus)}>
+                  <SelectTrigger className="input-field">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Prioridade</Label>
+                <Select value={priority} onValueChange={(value) => setPriority(value as OrderPriority)}>
+                  <SelectTrigger className="input-field">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priorityOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Client */}
             <div className="space-y-2">
               <Label>Cliente *</Label>
-              <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <Select value={selectedClient} onValueChange={(v) => { setSelectedClient(v); setSelectedAddress(""); }}>
                 <SelectTrigger className="input-field">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
@@ -269,16 +288,26 @@ export default function EditOrderPage() {
               </Select>
             </div>
 
-            {/* Expected Date */}
-            <div className="space-y-2">
-              <Label htmlFor="expectedDate">Data Prevista</Label>
-              <Input
-                id="expectedDate"
-                type="date"
-                value={expectedDate}
-                onChange={(e) => setExpectedDate(e.target.value)}
-                className="input-field"
-              />
+            {selectedClientData && selectedClientData.addresses.length > 0 && (
+              <div className="space-y-2">
+                <Label>Endereço</Label>
+                <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+                  <SelectTrigger className="input-field"><SelectValue placeholder="Selecione o endereço" /></SelectTrigger>
+                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.full}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Scheduled Date */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Data Agendamento</Label>
+                <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} className="input-field" />
+              </div>
+              <div className="space-y-2">
+                <Label>Hora</Label>
+                <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="input-field" />
+              </div>
             </div>
 
             {/* Add Services */}
@@ -303,9 +332,9 @@ export default function EditOrderPage() {
               <div className="space-y-2">
                 <Label>Serviços Selecionados</Label>
                 <div className="space-y-2">
-                  {services.map((service) => (
+                  {services.map((service, index) => (
                     <div
-                      key={service.id}
+                      key={index}
                       className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
                     >
                       <div className="flex-1">
@@ -317,7 +346,7 @@ export default function EditOrderPage() {
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(service.id, -1)}
+                          onClick={() => updateQuantity(service.name, -1)}
                           className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
                         >
                           <Minus className="w-4 h-4" />
@@ -325,14 +354,14 @@ export default function EditOrderPage() {
                         <span className="w-6 text-center text-sm font-medium">{service.quantity}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(service.id, 1)}
+                          onClick={() => updateQuantity(service.name, 1)}
                           className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
-                          onClick={() => removeService(service.id)}
+                          onClick={() => removeService(service.name)}
                           className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors ml-2"
                         >
                           <X className="w-4 h-4" />
@@ -343,30 +372,25 @@ export default function EditOrderPage() {
                 </div>
               </div>
             )}
-
-            {/* Total */}
-            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Valor Total</span>
-                <span className="text-xl font-bold text-primary">
-                  R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-5">
-            {/* Observations */}
+            {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="observations">Observações</Label>
+              <Label>Descrição</Label>
               <Textarea
-                id="observations"
-                placeholder="Anotações adicionais..."
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
+                placeholder="Descreva o serviço..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
               />
+            </div>
+
+            {/* Discount */}
+            <div className="space-y-2">
+              <Label>Desconto (R$)</Label>
+              <Input type="number" step="0.01" placeholder="0,00" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input-field" />
             </div>
 
             {/* Custom Fields */}
@@ -375,6 +399,24 @@ export default function EditOrderPage() {
               values={customFieldValues}
               onValuesChange={setCustomFieldValues}
             />
+
+            {/* Total */}
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>R$ {subtotal.toFixed(2)}</span>
+              </div>
+              {discountValue > 0 && (
+                <div className="flex justify-between text-sm text-status-finished">
+                  <span>Desconto</span>
+                  <span>- R$ {discountValue.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-lg pt-2 border-t border-primary/20">
+                <span>Total</span>
+                <span className="text-primary">R$ {total.toFixed(2)}</span>
+              </div>
+            </div>
 
             <Button
               type="submit"

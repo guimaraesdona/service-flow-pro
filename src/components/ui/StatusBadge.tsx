@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
-
-export type OrderStatus = "start" | "progress" | "waiting" | "cancelled" | "finished";
+import { OrderStatus } from "@/types";
 
 interface StatusBadgeProps {
   status: OrderStatus;
@@ -21,7 +20,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "status-badge border",
+        "status-badge border whitespace-nowrap justify-center leading-none py-0 pt-[3px] pb-[1px]",
         config.className,
         className
       )}

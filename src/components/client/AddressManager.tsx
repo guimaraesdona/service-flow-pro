@@ -6,18 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatCEP } from "@/lib/formatters";
 
-export interface Address {
-  id: string;
-  label: string;
-  cep: string;
-  street: string;
-  number: string;
-  complement?: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  isDefault?: boolean;
-}
+import { Address } from "@/types";
 
 interface AddressManagerProps {
   addresses: Address[];
@@ -89,8 +78,8 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
         addr.id === editingAddress.id
           ? { ...formData, id: editingAddress.id }
           : formData.isDefault
-          ? { ...addr, isDefault: false }
-          : addr
+            ? { ...addr, isDefault: false }
+            : addr
       );
       onAddressesChange(updatedAddresses);
     } else {
@@ -99,7 +88,7 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
         id: Date.now().toString(),
         isDefault: addresses.length === 0 ? true : formData.isDefault,
       };
-      
+
       let updatedAddresses = [...addresses];
       if (formData.isDefault) {
         updatedAddresses = updatedAddresses.map((addr) => ({ ...addr, isDefault: false }));
@@ -276,9 +265,8 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
           {addresses.map((address) => (
             <div
               key={address.id}
-              className={`p-3 rounded-lg border ${
-                address.isDefault ? "border-primary bg-primary/5" : "border-border bg-secondary/30"
-              }`}
+              className={`p-3 rounded-lg border ${address.isDefault ? "border-primary bg-primary/5" : "border-border bg-secondary/30"
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

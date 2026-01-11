@@ -10,9 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
-import { OrderStatus } from "@/components/ui/StatusBadge";
-
-interface ServiceItem { id: string; name: string; price: number; quantity: number; }
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
 
 const availableServices = [
   { id: "1", name: "Manutenção Preventiva", price: 150.0 },
@@ -38,11 +37,10 @@ const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "finished", label: "Finalizado" },
 ];
 
-const priorityOptions = [
+const priorityOptions: { value: OrderPriority; label: string }[] = [
   { value: "low", label: "Baixa" },
-  { value: "medium", label: "Média" },
+  { value: "normal", label: "Normal" },
   { value: "high", label: "Alta" },
-  { value: "urgent", label: "Urgente" },
 ];
 
 export default function NewOrderPage() {
@@ -51,7 +49,7 @@ export default function NewOrderPage() {
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [status, setStatus] = useState<OrderStatus>("start");
-  const [priority, setPriority] = useState("");
+  const [priority, setPriority] = useState<OrderPriority>("normal");
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [description, setDescription] = useState("");
@@ -65,19 +63,21 @@ export default function NewOrderPage() {
   const addService = (serviceId: string) => {
     const service = availableServices.find((s) => s.id === serviceId);
     if (!service) return;
-    const existing = services.find((s) => s.id === serviceId);
+    const existing = services.find((s) => s.name === service.name); // Using name as ID for now or checking uniqueness
+    // Since availableServices have IDs but ServiceItem doesn't necessarily enforce ID, 
+    // but simplified logic:
     if (existing) {
-      setServices(services.map((s) => s.id === serviceId ? { ...s, quantity: s.quantity + 1 } : s));
+      setServices(services.map((s) => s.name === service.name ? { ...s, quantity: s.quantity + 1 } : s));
     } else {
-      setServices([...services, { ...service, quantity: 1 }]);
+      setServices([...services, { name: service.name, price: service.price, quantity: 1 }]);
     }
   };
 
-  const updateQuantity = (serviceId: string, delta: number) => {
-    setServices(services.map((s) => s.id === serviceId ? { ...s, quantity: Math.max(0, s.quantity + delta) } : s).filter((s) => s.quantity > 0));
+  const updateQuantity = (serviceName: string, delta: number) => {
+    setServices(services.map((s) => s.name === serviceName ? { ...s, quantity: Math.max(0, s.quantity + delta) } : s).filter((s) => s.quantity > 0));
   };
 
-  const removeService = (serviceId: string) => { setServices(services.filter((s) => s.id !== serviceId)); };
+  const removeService = (serviceName: string) => { setServices(services.filter((s) => s.name !== serviceName)); };
 
   const subtotal = services.reduce((acc, s) => acc + s.price * s.quantity, 0);
   const discountValue = parseFloat(discount) || 0;
@@ -90,6 +90,21 @@ export default function NewOrderPage() {
       return;
     }
     setIsLoading(true);
+
+    // Construct the payload if this were a real API call
+    console.log({
+      clientId: selectedClient,
+      addressId: selectedAddress,
+      status,
+      priority,
+      scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : undefined,
+      description,
+      observations, // Maybe merge with description or keep separate? Using description field for main work description.
+      discount: discountValue,
+      services,
+      customFields: customFieldValues
+    });
+
     setTimeout(() => {
       setIsLoading(false);
       toast({ title: "Ordem criada!", description: "Ordem de serviço cadastrada com sucesso." });
@@ -121,7 +136,7 @@ export default function NewOrderPage() {
               </div>
               <div className="space-y-2">
                 <Label>Prioridade</Label>
-                <Select value={priority} onValueChange={setPriority}>
+                <Select value={priority} onValueChange={(v) => setPriority(v as OrderPriority)}>
                   <SelectTrigger className="input-field"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>{priorityOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
@@ -169,17 +184,17 @@ export default function NewOrderPage() {
               <div className="space-y-2">
                 <Label>Serviços Selecionados</Label>
                 <div className="space-y-2">
-                  {services.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                  {services.map((s, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{s.name}</p>
                         <p className="text-xs text-muted-foreground">R$ {s.price.toFixed(2)} x {s.quantity}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => updateQuantity(s.id, -1)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Minus className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => updateQuantity(s.name, -1)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Minus className="w-4 h-4" /></button>
                         <span className="w-6 text-center text-sm font-medium">{s.quantity}</span>
-                        <button type="button" onClick={() => updateQuantity(s.id, 1)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Plus className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => removeService(s.id)} className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center ml-2"><X className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => updateQuantity(s.name, 1)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => removeService(s.name)} className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center ml-2"><X className="w-4 h-4" /></button>
                       </div>
                     </div>
                   ))}

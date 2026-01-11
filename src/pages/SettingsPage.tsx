@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
@@ -8,28 +8,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Building, 
-  Moon, 
-  Sun, 
+import { useTheme } from "@/components/theme-provider";
+import {
+  User,
+  Mail,
+  Phone,
+  Building,
+  Moon,
+  Sun,
   Save,
   LogOut
 } from "lucide-react";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Initialize from localStorage or system preference synchronously
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      return savedTheme === "dark";
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const [userData, setUserData] = useState({
     name: "Empresa Exemplo LTDA",
@@ -39,14 +35,7 @@ export default function SettingsPage() {
   });
 
   const toggleDarkMode = (enabled: boolean) => {
-    setIsDarkMode(enabled);
-    if (enabled) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
+    setTheme(enabled ? "dark" : "light");
   };
 
   const updateField = (field: string, value: string) => {
@@ -150,7 +139,7 @@ export default function SettingsPage() {
         {/* Appearance Section */}
         <div className="card-elevated p-6 mb-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
           <h3 className="font-semibold text-foreground mb-4">Aparência</h3>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {isDarkMode ? (

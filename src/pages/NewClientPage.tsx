@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
-import { AddressManager, Address } from "@/components/client/AddressManager";
-import { formatCPFCNPJ, formatPhone } from "@/lib/formatters";
+import { AddressManager } from "@/components/client/AddressManager";
+import { Address } from "@/types";
+import { formatDocument, formatPhone } from "@/lib/formatters";
 
 export default function NewClientPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function NewClientPage() {
 
   const updateField = (field: string, value: string) => {
     if (field === "document") {
-      setFormData((prev) => ({ ...prev, [field]: formatCPFCNPJ(value) }));
+      setFormData((prev) => ({ ...prev, [field]: formatDocument(value) }));
     } else if (field === "phone") {
       setFormData((prev) => ({ ...prev, [field]: formatPhone(value) }));
     } else {

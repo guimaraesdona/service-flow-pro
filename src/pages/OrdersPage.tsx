@@ -5,23 +5,63 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Plus, Search, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge, OrderStatus } from "@/components/ui/StatusBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ServiceOrder, OrderStatus } from "@/types";
 
-interface Order {
-  id: string;
-  clientName: string;
-  services: string[];
-  total: number;
-  date: string;
-  status: OrderStatus;
-}
-
-const mockOrders: Order[] = [
-  { id: "001", clientName: "Maria Silva", services: ["Manutenção Preventiva"], total: 150.0, date: "2025-01-05", status: "progress" },
-  { id: "002", clientName: "João Santos", services: ["Instalação Elétrica", "Pintura"], total: 600.0, date: "2025-01-04", status: "waiting" },
-  { id: "003", clientName: "Ana Oliveira", services: ["Reparo Hidráulico"], total: 180.0, date: "2025-01-03", status: "finished" },
-  { id: "004", clientName: "Carlos Mendes", services: ["Montagem de Móveis"], total: 120.0, date: "2025-01-02", status: "start" },
-  { id: "005", clientName: "Paula Costa", services: ["Pintura"], total: 350.0, date: "2025-01-01", status: "cancelled" },
+const mockOrders: ServiceOrder[] = [
+  {
+    id: "001",
+    clientId: "1",
+    clientName: "Maria Silva",
+    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
+    total: 150.0,
+    date: "2025-01-05",
+    status: "progress",
+    priority: "high",
+    description: "Manutenção anual do sistema de ar condicionado",
+    scheduledAt: "2025-01-10T14:00:00"
+  },
+  {
+    id: "002",
+    clientId: "2",
+    clientName: "João Santos",
+    services: [{ name: "Instalação Elétrica", quantity: 1, price: 250.0 }, { name: "Pintura", quantity: 1, price: 350.0 }],
+    total: 600.0,
+    date: "2025-01-04",
+    status: "waiting",
+    priority: "normal",
+    discount: 50.0
+  },
+  {
+    id: "003",
+    clientId: "3",
+    clientName: "Ana Oliveira",
+    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
+    total: 180.0,
+    date: "2025-01-03",
+    status: "finished",
+    priority: "low"
+  },
+  {
+    id: "004",
+    clientId: "4",
+    clientName: "Carlos Mendes",
+    services: [{ name: "Montagem de Móveis", quantity: 2, price: 60.0 }],
+    total: 120.0,
+    date: "2025-01-02",
+    status: "start",
+    priority: "normal"
+  },
+  {
+    id: "005",
+    clientId: "5",
+    clientName: "Paula Costa",
+    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
+    total: 350.0,
+    date: "2025-01-01",
+    status: "cancelled",
+    priority: "high"
+  },
 ];
 
 const statusColors: Record<OrderStatus, string> = {
@@ -34,7 +74,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
-  const [orders] = useState<Order[]>(mockOrders);
+  const [orders] = useState<ServiceOrder[]>(mockOrders);
 
   const filteredOrders = orders.filter((o) =>
     o.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -66,8 +106,8 @@ export default function OrdersPage() {
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader 
-          title="Ordens de Serviço" 
+        <DesktopHeader
+          title="Ordens de Serviço"
           actions={
             <Link to="/ordens/nova">
               <Button className="btn-primary">
@@ -108,12 +148,12 @@ export default function OrdersPage() {
 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">{order.clientName}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{order.services.join(", ")}</p>
+                  <p className="text-sm text-muted-foreground truncate">{order.services.map(s => s.name).join(", ")}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <StatusBadge status={order.status} />
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center justify-center gap-1 text-xs text-muted-foreground whitespace-nowrap leading-none">
                       <Calendar className="w-3 h-3" />
-                      {formatDate(order.date)}
+                      <span className="mt-[3px]">{formatDate(order.date)}</span>
                     </span>
                   </div>
                 </div>

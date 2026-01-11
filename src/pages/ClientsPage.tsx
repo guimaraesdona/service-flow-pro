@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatPhone } from "@/lib/formatters";
 import { Link } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
@@ -6,21 +7,67 @@ import { Plus, Search, Phone, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  document: string;
-  avatar?: string;
-}
+import { Client } from "@/types";
 
 const mockClients: Client[] = [
-  { id: "1", name: "Maria Silva", email: "maria@email.com", phone: "(11) 99999-1111", document: "123.456.789-00" },
-  { id: "2", name: "João Santos", email: "joao@email.com", phone: "(11) 99999-2222", document: "987.654.321-00" },
-  { id: "3", name: "Ana Oliveira", email: "ana@email.com", phone: "(11) 99999-3333", document: "456.789.123-00" },
-  { id: "4", name: "Carlos Mendes", email: "carlos@email.com", phone: "(11) 99999-4444", document: "789.123.456-00" },
-  { id: "5", name: "Paula Costa", email: "paula@email.com", phone: "(11) 99999-5555", document: "321.654.987-00" },
+  {
+    id: "1",
+    name: "Maria Silva",
+    email: "maria@email.com",
+    phone: "(11) 99999-1111",
+    document: "123.456.789-00",
+    birthDate: "1985-03-15",
+    addresses: [
+      {
+        id: "1",
+        label: "Casa",
+        cep: "01310-100",
+        street: "Av. Paulista",
+        number: "1000",
+        complement: "Sala 501",
+        neighborhood: "Bela Vista",
+        city: "São Paulo",
+        state: "SP",
+        isDefault: true
+      }
+    ]
+  },
+  {
+    id: "2",
+    name: "João Santos",
+    email: "joao@email.com",
+    phone: "(11) 99999-2222",
+    document: "987.654.321-00",
+    birthDate: "1990-07-20",
+    addresses: []
+  },
+  {
+    id: "3",
+    name: "Ana Oliveira",
+    email: "ana@email.com",
+    phone: "(11) 99999-3333",
+    document: "456.789.123-00",
+    birthDate: "1988-11-10",
+    addresses: []
+  },
+  {
+    id: "4",
+    name: "Carlos Mendes",
+    email: "carlos@email.com",
+    phone: "(11) 99999-4444",
+    document: "789.123.456-00",
+    birthDate: "1982-05-25",
+    addresses: []
+  },
+  {
+    id: "5",
+    name: "Paula Costa",
+    email: "paula@email.com",
+    phone: "(11) 99999-5555",
+    document: "321.654.987-00",
+    birthDate: "1995-09-08",
+    addresses: []
+  },
 ];
 
 export default function ClientsPage() {
@@ -50,8 +97,8 @@ export default function ClientsPage() {
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader 
-          title="Clientes" 
+        <DesktopHeader
+          title="Clientes"
           actions={
             <Link to="/clientes/novo">
               <Button className="btn-primary">
@@ -100,7 +147,7 @@ export default function ClientsPage() {
                 <div className="text-right">
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Phone className="w-3 h-3" />
-                    {client.phone}
+                    {formatPhone(client.phone)}
                   </span>
                 </div>
               </Link>
