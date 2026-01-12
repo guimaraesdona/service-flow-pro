@@ -125,9 +125,6 @@ export default function PrintOrderPage() {
             background: white;
             color: black;
           }
-          .print:hidden {
-            display: none !important;
-          }
         }
       `}</style>
     </div>

@@ -75,7 +75,7 @@ export default function ServicesPage() {
 
         {/* Services List */}
         {filteredServices.length > 0 ? (
-          <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 lg:space-y-0">
+          <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:gap-4 lg:space-y-0">
             {filteredServices.map((service, index) => (
               <Link
                 key={service.id}

@@ -21,7 +21,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 min-h-screen bg-card border-r border-border/50">
+    <aside className="hidden lg:flex flex-col w-60 min-h-screen bg-card border-r border-border/50 print:hidden">
       {/* Logo */}
       <div className="p-6 border-b border-border/50">
         <h1 className="text-xl font-bold text-foreground">OSApp</h1>

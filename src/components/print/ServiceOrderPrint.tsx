@@ -21,7 +21,7 @@ export function ServiceOrderPrint({ order }: ServiceOrderPrintProps) {
     };
 
     return (
-        <div className="w-[80mm] bg-white text-black p-4 font-mono text-sm leading-tight mx-auto shadow-sm print:shadow-none print:w-full">
+        <div className="w-[80mm] bg-white text-black p-4 font-mono text-sm leading-tight mx-auto shadow-sm print:shadow-none print:w-[80mm] print:mx-0 print:p-2" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
             {/* Header */}
             <div className="text-center border-b border-black pb-4 mb-4">
                 <div className="flex justify-center mb-2">
@@ -29,16 +29,16 @@ export function ServiceOrderPrint({ order }: ServiceOrderPrintProps) {
                         <Receipt className="w-6 h-6" />
                     </div>
                 </div>
-                <h1 className="font-bold text-lg uppercase">Service Flow Pro</h1>
-                <p className="text-xs">Soluções Rápidas e Eficientes</p>
+                <h1 className="font-bold text-lg uppercase">Lava Jato Jardim América LTDA</h1>
+                {/* <p className="text-xs">Soluções Rápidas e Eficientes</p> */}
                 <div className="flex items-center justify-center gap-1 mt-1 text-xs">
                     <Smartphone className="w-3 h-3" />
-                    <span>(11) 99999-0000</span>
+                    <span>(34) 3213-5001</span>
                 </div>
-                <div className="flex items-center justify-center gap-1 text-xs">
+                {/* <div className="flex items-center justify-center gap-1 text-xs">
                     <Globe className="w-3 h-3" />
                     <span>www.serviceflow.pro</span>
-                </div>
+                </div> */}
             </div>
 
             {/* Order Info */}
