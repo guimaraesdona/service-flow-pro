@@ -92,7 +92,7 @@ export default function PrintOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-zinc-950 flex flex-col">
+    <div className="min-h-screen print:min-h-0 bg-gray-100 dark:bg-zinc-950 flex flex-col">
       {/* Header - Hidden on Print */}
       <div className="bg-background border-b border-border p-4 flex items-center justify-between print:hidden shadow-sm z-10">
         <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function PrintOrderPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-4 md:p-8 flex items-start justify-center print:p-0 print:overflow-visible">
+      <div className="flex-1 overflow-auto p-4 md:p-8 flex items-start justify-center print:p-0 print:overflow-visible print:block">
         <div className="print:w-full">
           <ServiceOrderPrint order={order} />
         </div>
@@ -119,9 +119,11 @@ export default function PrintOrderPage() {
         @media print {
           @page {
             margin: 0;
-            size: auto;
+            size: auto; /* thermal printers usually handle 'auto' as continuous, but some need explicit height hints */
           }
-          body {
+          html, body {
+            height: auto !important;
+            overflow: visible !important;
             background: white;
             color: black;
           }
