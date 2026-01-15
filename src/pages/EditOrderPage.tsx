@@ -9,25 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
-import { ServiceOrder, ServiceItem, OrderStatus, OrderPriority } from "@/types";
-
-const availableServices = [
-  { id: "1", name: "Manutenção Preventiva", price: 150.0 },
-  { id: "2", name: "Instalação Elétrica", price: 250.0 },
-  { id: "3", name: "Reparo Hidráulico", price: 180.0 },
-  { id: "4", name: "Pintura", price: 350.0 },
-  { id: "5", name: "Montagem de Móveis", price: 120.0 },
-];
-
-const clients = [
-  { id: "1", name: "Maria Silva", addresses: [{ id: "1", label: "Casa", full: "Av. Paulista, 1000 - Bela Vista, SP" }, { id: "2", label: "Trabalho", full: "Rua Augusta, 500 - Consolação, SP" }] },
-  { id: "2", name: "João Santos", addresses: [{ id: "3", label: "Residencial", full: "Rua Funchal, 418 - Vila Olímpia, SP" }] },
-  { id: "3", name: "Ana Oliveira", addresses: [{ id: "4", label: "Casa", full: "Rua Augusta, 200 - Consolação, SP" }] },
-  { id: "4", name: "Carlos Mendes", addresses: [] },
-  { id: "5", name: "Paula Costa", addresses: [{ id: "5", label: "Apartamento", full: "Rua Haddock Lobo, 595 - Cerqueira César, SP" }] },
-];
+import { useOrders } from "@/hooks/useOrders";
+import { useClients } from "@/hooks/useClients";
+import { useServices } from "@/hooks/useServices";
+import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "start", label: "Iniciar" },
@@ -43,72 +29,15 @@ const priorityOptions: { value: OrderPriority; label: string }[] = [
   { value: "high", label: "Alta" },
 ];
 
-const mockOrders: Record<string, ServiceOrder> = {
-  "001": {
-    id: "001",
-    clientName: "Maria Silva",
-    clientId: "1",
-    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
-    total: 150.0,
-    date: "2025-01-05",
-    status: "progress",
-    priority: "high",
-    description: "Manutenção anual do sistema de ar condicionado. Cliente solicitou agendamento para o período da tarde.",
-    scheduledAt: "2025-01-10T14:00:00"
-  },
-  "002": {
-    id: "002",
-    clientName: "João Santos",
-    clientId: "2",
-    services: [
-      { name: "Instalação Elétrica", quantity: 1, price: 250.0 },
-      { name: "Pintura", quantity: 1, price: 350.0 },
-    ],
-    total: 600.0,
-    date: "2025-01-04",
-    status: "waiting",
-    priority: "normal",
-    discount: 50.0,
-    description: "Aguardando aprovação do orçamento pelo cliente."
-  },
-  "003": {
-    id: "003",
-    clientName: "Ana Oliveira",
-    clientId: "3",
-    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
-    total: 180.0,
-    date: "2025-01-03",
-    status: "finished",
-    priority: "low"
-  },
-  "004": {
-    id: "004",
-    clientName: "Carlos Mendes",
-    clientId: "4",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 120.0 }],
-    total: 240.0,
-    date: "2025-01-02",
-    status: "start",
-    priority: "normal",
-    description: "Montagem de 2 guarda-roupas."
-  },
-  "005": {
-    id: "005",
-    clientName: "Paula Costa",
-    clientId: "5",
-    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
-    total: 350.0,
-    date: "2025-01-01",
-    status: "cancelled",
-    priority: "high",
-    description: "Cliente cancelou por motivos pessoais."
-  },
-};
-
 export default function EditOrderPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { orders, updateOrder } = useOrders();
+  const { clients } = useClients();
+  const { services: availableServices } = useServices();
+
+  const order = orders?.find(o => o.id === id);
+
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -121,12 +50,11 @@ export default function EditOrderPage() {
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
 
   useEffect(() => {
-    if (id && mockOrders[id]) {
-      const order = mockOrders[id];
+    if (order) {
       setSelectedClient(order.clientId);
       if (order.scheduledAt) {
         setScheduledDate(order.scheduledAt.split("T")[0]);
-        setScheduledTime(order.scheduledAt.split("T")[1].substring(0, 5));
+        setScheduledTime(order.scheduledAt.split("T")[1]?.substring(0, 5) || "");
       }
       setDescription(order.description || "");
       setStatus(order.status);
@@ -134,11 +62,9 @@ export default function EditOrderPage() {
       setDiscount(order.discount ? order.discount.toString() : "");
       setServices(order.services);
     }
-  }, [id]);
+  }, [order]);
 
-  const selectedClientData = clients.find(c => c.id === selectedClient);
-
-  const order = id ? mockOrders[id] : null;
+  const selectedClientData = clients?.find(c => c.id === selectedClient);
 
   if (!order) {
     return (
@@ -154,7 +80,7 @@ export default function EditOrderPage() {
   }
 
   const addService = (serviceId: string) => {
-    const service = availableServices.find((s) => s.id === serviceId);
+    const service = availableServices?.find((s) => s.id === serviceId);
     if (!service) return;
 
     const existing = services.find((s) => s.name === service.name);
@@ -199,28 +125,47 @@ export default function EditOrderPage() {
       return;
     }
 
-    setIsLoading(true);
+    if (!id) return;
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await updateOrder.mutateAsync({
+        id,
+        data: {
+          clientId: selectedClient,
+          status,
+          priority,
+          total,
+          discount: discountValue,
+          description,
+          scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
+          services
+        }
+      });
+
       toast({
         title: "Ordem atualizada!",
         description: "Ordem de serviço atualizada com sucesso.",
       });
       navigate(`/ordens/${id}`);
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="page-container bg-background">
       {/* Mobile Header */}
       <div className="lg:hidden">
-        <TopNav title={`Editar Ordem #${id}`} showBack />
+        <TopNav title={`Editar Ordem #${order.number || order.id.slice(0, 4)}`} showBack />
       </div>
 
       {/* Desktop Header */}
       <div className="hidden lg:block">
-        <DesktopHeader title={`Editar Ordem de Serviço #${id}`} />
+        <DesktopHeader title={`Editar Ordem de Serviço #${order.number || order.id.slice(0, 4)}`} />
       </div>
 
       <div className="content-container">
@@ -279,7 +224,7 @@ export default function EditOrderPage() {
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -288,12 +233,12 @@ export default function EditOrderPage() {
               </Select>
             </div>
 
-            {selectedClientData && selectedClientData.addresses.length > 0 && (
+            {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
               <div className="space-y-2">
                 <Label>Endereço</Label>
                 <Select value={selectedAddress} onValueChange={setSelectedAddress}>
                   <SelectTrigger className="input-field"><SelectValue placeholder="Selecione o endereço" /></SelectTrigger>
-                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.full}</SelectItem>)}</SelectContent>
+                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.street}, {a.number}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             )}
@@ -318,7 +263,7 @@ export default function EditOrderPage() {
                   <SelectValue placeholder="Selecione um serviço" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableServices.map((service) => (
+                  {availableServices?.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name} - R$ {service.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </SelectItem>
@@ -421,9 +366,9 @@ export default function EditOrderPage() {
             <Button
               type="submit"
               className="w-full btn-primary mt-6"
-              disabled={isLoading}
+              disabled={updateOrder.isPending}
             >
-              {isLoading ? "Salvando..." : "Salvar"}
+              {updateOrder.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </form>

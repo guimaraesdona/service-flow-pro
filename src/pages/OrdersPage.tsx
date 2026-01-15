@@ -6,63 +6,8 @@ import { Plus, Search, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { ServiceOrder, OrderStatus } from "@/types";
-
-const mockOrders: ServiceOrder[] = [
-  {
-    id: "001",
-    clientId: "1",
-    clientName: "Maria Silva",
-    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
-    total: 150.0,
-    date: "2025-01-05",
-    status: "progress",
-    priority: "high",
-    description: "Manutenção anual do sistema de ar condicionado",
-    scheduledAt: "2025-01-10T14:00:00"
-  },
-  {
-    id: "002",
-    clientId: "2",
-    clientName: "João Santos",
-    services: [{ name: "Instalação Elétrica", quantity: 1, price: 250.0 }, { name: "Pintura", quantity: 1, price: 350.0 }],
-    total: 600.0,
-    date: "2025-01-04",
-    status: "waiting",
-    priority: "normal",
-    discount: 50.0
-  },
-  {
-    id: "003",
-    clientId: "3",
-    clientName: "Ana Oliveira",
-    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
-    total: 180.0,
-    date: "2025-01-03",
-    status: "finished",
-    priority: "low"
-  },
-  {
-    id: "004",
-    clientId: "4",
-    clientName: "Carlos Mendes",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 60.0 }],
-    total: 120.0,
-    date: "2025-01-02",
-    status: "start",
-    priority: "normal"
-  },
-  {
-    id: "005",
-    clientId: "5",
-    clientName: "Paula Costa",
-    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
-    total: 350.0,
-    date: "2025-01-01",
-    status: "cancelled",
-    priority: "high"
-  },
-];
+import { OrderStatus } from "@/types";
+import { useOrders } from "@/hooks/useOrders";
 
 const statusColors: Record<OrderStatus, string> = {
   start: "bg-status-start",
@@ -74,7 +19,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
-  const [orders] = useState<ServiceOrder[]>(mockOrders);
+  const { orders, isLoading } = useOrders();
 
   const filteredOrders = orders.filter((o) =>
     o.clientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -132,7 +77,11 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders List */}
-        {filteredOrders.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredOrders.length > 0 ? (
           <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:gap-4 lg:space-y-0">
             {filteredOrders.map((order, index) => (
               <Link
@@ -143,7 +92,7 @@ export default function OrdersPage() {
               >
                 {/* Status indicator */}
                 <div className={`w-12 h-12 rounded-xl ${statusColors[order.status]} flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-white text-sm font-bold">#{order.id}</span>
+                  <span className="text-white text-sm font-bold">#{order.number || order.id.slice(0, 4)}</span>
                 </div>
 
                 <div className="flex-1 min-w-0">

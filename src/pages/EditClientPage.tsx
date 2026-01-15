@@ -10,41 +10,16 @@ import { toast } from "@/hooks/use-toast";
 import { AddressManager } from "@/components/client/AddressManager";
 import { Client, Address } from "@/types";
 
-const mockClients: Record<string, Client> = {
-  "1": {
-    id: "1",
-    name: "Maria Silva",
-    email: "maria@email.com",
-    phone: "(11) 99999-1111",
-    document: "123.456.789-00",
-    birthDate: "1985-03-15",
-    addresses: [
-      {
-        id: "1",
-        label: "Casa",
-        cep: "01310-100",
-        street: "Av. Paulista",
-        number: "1000",
-        complement: "Sala 501",
-        neighborhood: "Bela Vista",
-        city: "São Paulo",
-        state: "SP",
-        isDefault: true
-      }
-    ]
-  },
-  // ... mock data simplified
-  "2": { id: "2", name: "João Santos", email: "joao@email.com", phone: "(11) 99999-2222", document: "987.654.321-00", birthDate: "1990-07-20", addresses: [] },
-  "3": { id: "3", name: "Ana Oliveira", email: "ana@email.com", phone: "(11) 99999-3333", document: "456.789.123-00", birthDate: "1988-11-10", addresses: [] },
-  "4": { id: "4", name: "Carlos Mendes", email: "carlos@email.com", phone: "(11) 99999-4444", document: "789.123.456-00", birthDate: "1982-05-25", addresses: [] },
-  "5": { id: "5", name: "Paula Costa", email: "paula@email.com", phone: "(11) 99999-5555", document: "321.654.987-00", birthDate: "1995-09-08", addresses: [] },
-};
+import { useClients } from "@/hooks/useClients";
 
 export default function EditClientPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { clients, updateClient } = useClients();
+
+  const client = clients?.find(c => c.id === id);
+
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -57,20 +32,17 @@ export default function EditClientPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   useEffect(() => {
-    if (id && mockClients[id]) {
-      const client = mockClients[id];
+    if (client) {
       setFormData({
         name: client.name,
-        email: client.email,
-        document: client.document,
-        birthDate: client.birthDate,
-        phone: client.phone,
+        email: client.email || "",
+        document: client.document || "",
+        birthDate: client.birthDate || "",
+        phone: client.phone || "",
       });
-      setAddresses(client.addresses);
+      setAddresses(client.addresses || []);
     }
-  }, [id]);
-
-  const client = id ? mockClients[id] : null;
+  }, [client]);
 
   if (!client) {
     return (
@@ -103,16 +75,33 @@ export default function EditClientPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!id) return;
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await updateClient.mutateAsync({
+        id,
+        data: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          document: formData.document,
+          birthDate: formData.birthDate,
+          addresses: addresses
+        }
+      });
+
       toast({
         title: "Cliente atualizado!",
         description: `${formData.name} foi atualizado com sucesso.`,
       });
       navigate(`/clientes/${id}`);
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -225,9 +214,9 @@ export default function EditClientPage() {
                 <Button
                   type="submit"
                   className="flex-1 btn-primary"
-                  disabled={isLoading}
+                  disabled={updateClient.isPending}
                 >
-                  {isLoading ? "Salvando..." : "Salvar"}
+                  {updateClient.isPending ? "Salvando..." : "Salvar"}
                 </Button>
               </div>
             </div>

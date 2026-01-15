@@ -10,24 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
-
-const availableServices = [
-  { id: "1", name: "Manutenção Preventiva", price: 150.0 },
-  { id: "2", name: "Instalação Elétrica", price: 250.0 },
-  { id: "3", name: "Reparo Hidráulico", price: 180.0 },
-  { id: "4", name: "Pintura", price: 350.0 },
-  { id: "5", name: "Montagem de Móveis", price: 120.0 },
-];
-
-const clients = [
-  { id: "1", name: "Maria Silva", addresses: [{ id: "1", label: "Casa", full: "Av. Paulista, 1000 - Bela Vista, SP" }, { id: "2", label: "Trabalho", full: "Rua Augusta, 500 - Consolação, SP" }] },
-  { id: "2", name: "João Santos", addresses: [{ id: "3", label: "Residencial", full: "Rua Funchal, 418 - Vila Olímpia, SP" }] },
-  { id: "3", name: "Ana Oliveira", addresses: [{ id: "4", label: "Casa", full: "Rua Augusta, 200 - Consolação, SP" }] },
-  { id: "4", name: "Carlos Mendes", addresses: [] },
-  { id: "5", name: "Paula Costa", addresses: [{ id: "5", label: "Apartamento", full: "Rua Haddock Lobo, 595 - Cerqueira César, SP" }] },
-];
+import { useOrders } from "@/hooks/useOrders";
+import { useClients } from "@/hooks/useClients";
+import { useServices } from "@/hooks/useServices";
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "start", label: "Iniciar" },
@@ -45,7 +31,10 @@ const priorityOptions: { value: OrderPriority; label: string }[] = [
 
 export default function NewOrderPage() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { createOrder } = useOrders();
+  const { clients } = useClients();
+  const { services: availableServices } = useServices();
+
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [status, setStatus] = useState<OrderStatus>("start");
@@ -58,14 +47,13 @@ export default function NewOrderPage() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
 
-  const selectedClientData = clients.find(c => c.id === selectedClient);
+  const selectedClientData = clients?.find(c => c.id === selectedClient);
 
   const addService = (serviceId: string) => {
-    const service = availableServices.find((s) => s.id === serviceId);
+    const service = availableServices?.find((s) => s.id === serviceId);
     if (!service) return;
-    const existing = services.find((s) => s.name === service.name); // Using name as ID for now or checking uniqueness
-    // Since availableServices have IDs but ServiceItem doesn't necessarily enforce ID, 
-    // but simplified logic:
+    const existing = services.find((s) => s.name === service.name);
+
     if (existing) {
       setServices(services.map((s) => s.name === service.name ? { ...s, quantity: s.quantity + 1 } : s));
     } else {
@@ -89,27 +77,28 @@ export default function NewOrderPage() {
       toast({ title: "Campos obrigatórios", description: "Selecione um cliente e adicione pelo menos um serviço.", variant: "destructive" });
       return;
     }
-    setIsLoading(true);
 
-    // Construct the payload if this were a real API call
-    console.log({
-      clientId: selectedClient,
-      addressId: selectedAddress,
-      status,
-      priority,
-      scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : undefined,
-      description,
-      observations, // Maybe merge with description or keep separate? Using description field for main work description.
-      discount: discountValue,
-      services,
-      customFields: customFieldValues
-    });
+    try {
+      await createOrder.mutateAsync({
+        clientId: selectedClient,
+        status,
+        priority,
+        total,
+        discount: discountValue,
+        description: description + (observations ? `\n\nObs: ${observations}` : ""),
+        scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
+        services,
+      });
 
-    setTimeout(() => {
-      setIsLoading(false);
       toast({ title: "Ordem criada!", description: "Ordem de serviço cadastrada com sucesso." });
       navigate("/ordens");
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar ordem",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -147,16 +136,16 @@ export default function NewOrderPage() {
               <Label>Cliente *</Label>
               <Select value={selectedClient} onValueChange={(v) => { setSelectedClient(v); setSelectedAddress(""); }}>
                 <SelectTrigger className="input-field"><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
-                <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                <SelectContent>{clients?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
-            {selectedClientData && selectedClientData.addresses.length > 0 && (
+            {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
               <div className="space-y-2">
                 <Label>Endereço</Label>
                 <Select value={selectedAddress} onValueChange={setSelectedAddress}>
                   <SelectTrigger className="input-field"><SelectValue placeholder="Selecione o endereço" /></SelectTrigger>
-                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.full}</SelectItem>)}</SelectContent>
+                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.street}, {a.number}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             )}
@@ -176,7 +165,7 @@ export default function NewOrderPage() {
               <Label>Adicionar Serviços *</Label>
               <Select onValueChange={addService}>
                 <SelectTrigger className="input-field"><SelectValue placeholder="Selecione um serviço" /></SelectTrigger>
-                <SelectContent>{availableServices.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price.toFixed(2)}</SelectItem>)}</SelectContent>
+                <SelectContent>{availableServices?.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price.toFixed(2)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
@@ -238,7 +227,7 @@ export default function NewOrderPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full btn-primary" disabled={isLoading}>{isLoading ? "Salvando..." : "Cadastrar"}</Button>
+            <Button type="submit" className="w-full btn-primary" disabled={createOrder.isPending}>{createOrder.isPending ? "Salvando..." : "Cadastrar"}</Button>
           </div>
         </form>
       </div>

@@ -5,29 +5,15 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Plus, Search, Wrench, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
-
-const mockServices: Service[] = [
-  { id: "1", name: "Manutenção Preventiva", description: "Verificação geral e ajustes", price: 150.0 },
-  { id: "2", name: "Instalação Elétrica", description: "Instalação de pontos elétricos", price: 250.0 },
-  { id: "3", name: "Reparo Hidráulico", description: "Conserto de vazamentos e encanamentos", price: 180.0 },
-  { id: "4", name: "Pintura", description: "Pintura de ambientes internos", price: 350.0 },
-  { id: "5", name: "Montagem de Móveis", description: "Montagem e instalação de móveis", price: 120.0 },
-];
+import { useServices } from "@/hooks/useServices";
 
 export default function ServicesPage() {
   const [search, setSearch] = useState("");
-  const [services] = useState<Service[]>(mockServices);
+  const { services, isLoading } = useServices();
 
   const filteredServices = services.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.description.toLowerCase().includes(search.toLowerCase())
+    s.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -74,7 +60,11 @@ export default function ServicesPage() {
         </div>
 
         {/* Services List */}
-        {filteredServices.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredServices.length > 0 ? (
           <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:gap-4 lg:space-y-0">
             {filteredServices.map((service, index) => (
               <Link

@@ -1,85 +1,27 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
+import { Edit, User, FileText, Wrench, Printer, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Edit, User, Calendar, DollarSign, FileText, Wrench, Printer } from "lucide-react";
-import { ServiceOrder, OrderStatus } from "@/types";
-
-const mockOrders: Record<string, ServiceOrder> = {
-  "001": {
-    id: "001",
-    clientName: "Maria Silva",
-    clientId: "1",
-    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
-    total: 150.0,
-    date: "2025-01-05",
-    status: "progress",
-    priority: "high",
-    description: "Manutenção anual do sistema de ar condicionado. Cliente solicitou agendamento para o período da tarde.",
-    scheduledAt: "2025-01-10T14:00:00"
-  },
-  "002": {
-    id: "002",
-    clientName: "João Santos",
-    clientId: "2",
-    services: [
-      { name: "Instalação Elétrica", quantity: 1, price: 250.0 },
-      { name: "Pintura", quantity: 1, price: 350.0 },
-    ],
-    total: 600.0,
-    date: "2025-01-04",
-    status: "waiting",
-    priority: "normal",
-    discount: 50.0,
-    description: "Aguardando aprovação do orçamento pelo cliente."
-  },
-  "003": {
-    id: "003",
-    clientName: "Ana Oliveira",
-    clientId: "3",
-    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
-    total: 180.0,
-    date: "2025-01-03",
-    status: "finished",
-    priority: "low"
-  },
-  "004": {
-    id: "004",
-    clientName: "Carlos Mendes",
-    clientId: "4",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 60.0 }], // Fixed price to match total 120 (2 * 60)
-    total: 120.0,
-    date: "2025-01-02",
-    status: "start",
-    priority: "normal",
-    description: "Montagem de 2 guarda-roupas."
-  },
-  "005": {
-    id: "005",
-    clientName: "Paula Costa",
-    clientId: "5",
-    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
-    total: 350.0,
-    date: "2025-01-01",
-    status: "cancelled",
-    priority: "high",
-    description: "Cliente cancelou por motivos pessoais."
-  },
-};
-
-const statusColors: Record<OrderStatus, string> = {
-  start: "bg-status-start",
-  progress: "bg-status-progress",
-  waiting: "bg-status-waiting",
-  cancelled: "bg-status-cancelled",
-  finished: "bg-status-finished",
-};
+import { useOrders } from "@/hooks/useOrders";
+import { useClients } from "@/hooks/useClients";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { orders, isLoading } = useOrders();
+  const { clients } = useClients();
 
-  const order = id ? mockOrders[id] : null;
+  const order = orders?.find(o => o.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -104,36 +46,55 @@ export default function OrderDetailPage() {
 
   return (
     <div className="page-container bg-background">
-      <TopNav
-        title={`Ordem #${order.id}`}
-        showBack
-        rightAction={
-          <div className="flex gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => navigate(`/ordens/${id}/imprimir`)}
-              className="text-primary hover:text-primary/80"
-            >
-              <Printer className="w-5 h-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => navigate(`/ordens/${id}/editar`)}
-              className="text-primary hover:text-primary/80"
-            >
-              <Edit className="w-5 h-5" />
-            </Button>
-          </div>
-        }
-      />
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        <DesktopHeader
+          title={`Detalhes da Ordem #${order.number || order.id.slice(0, 4)}`}
+          actions={
+            <div className="flex gap-2">
+              <Link to={`/ordens/${id}/imprimir`}>
+                <Button variant="outline">
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimir
+                </Button>
+              </Link>
+              <Link to={`/ordens/${id}/editar`}>
+                <Button className="btn-primary">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+              </Link>
+            </div>
+          }
+        />
+      </div>
+
+      <div className="lg:hidden">
+        <TopNav
+          title={`Ordem #${order.number || order.id.slice(0, 4)}`}
+          showBack
+          rightAction={
+            <div className="flex gap-1">
+              <Link to={`/ordens/${id}/imprimir`}>
+                <Button size="icon" variant="ghost" className="text-primary hover:text-primary/80">
+                  <Printer className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to={`/ordens/${id}/editar`}>
+                <Button size="icon" variant="ghost" className="text-primary hover:text-primary/80">
+                  <Edit className="w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+          }
+        />
+      </div>
 
       <div className="content-container space-y-6">
         {/* Header */}
         <div className="card-elevated p-6 text-center animate-fade-in">
-          <div className={`w-20 h-20 rounded-xl ${statusColors[order.status]} flex items-center justify-center mx-auto mb-4`}>
-            <span className="text-white text-xl font-bold">#{order.id}</span>
+          <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-primary text-xl font-bold">#{order.number || order.id.slice(0, 4)}</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <StatusBadge status={order.status} />
@@ -197,6 +158,12 @@ export default function OrderDetailPage() {
               R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
+          {order.discount && order.discount > 0 && (
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+              <p className="text-sm text-status-finished">Desconto</p>
+              <p className="text-sm font-bold text-status-finished">- R$ {order.discount.toFixed(2)}</p>
+            </div>
+          )}
         </div>
 
         {/* Description/Observations */}

@@ -1,82 +1,60 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useRef, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
 import { TopNav } from "@/components/layout/TopNav";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { ServiceOrderPrint } from "@/components/print/ServiceOrderPrint";
-import { ServiceOrder } from "@/types";
-
-// Reusing mock data for simplicity, ideally fetched from a store or API
-const mockOrders: Record<string, ServiceOrder> = {
-  "001": {
-    id: "001",
-    clientName: "Maria Silva",
-    clientId: "1",
-    services: [{ name: "Manutenção Preventiva", quantity: 1, price: 150.0 }],
-    total: 150.0,
-    date: "2025-01-05",
-    status: "progress",
-    priority: "high",
-    description: "Manutenção anual do sistema de ar condicionado. Cliente solicitou agendamento para o período da tarde.",
-    scheduledAt: "2025-01-10T14:00:00"
-  },
-  "002": {
-    id: "002",
-    clientName: "João Santos",
-    clientId: "2",
-    services: [
-      { name: "Instalação Elétrica", quantity: 1, price: 250.0 },
-      { name: "Pintura", quantity: 1, price: 350.0 },
-    ],
-    total: 600.0,
-    date: "2025-01-04",
-    status: "waiting",
-    priority: "normal",
-    discount: 50.0,
-    description: "Aguardando aprovação do orçamento pelo cliente."
-  },
-  "003": {
-    id: "003",
-    clientName: "Ana Oliveira",
-    clientId: "3",
-    services: [{ name: "Reparo Hidráulico", quantity: 1, price: 180.0 }],
-    total: 180.0,
-    date: "2025-01-03",
-    status: "finished",
-    priority: "low"
-  },
-  "004": {
-    id: "004",
-    clientName: "Carlos Mendes",
-    clientId: "4",
-    services: [{ name: "Montagem de Móveis", quantity: 2, price: 60.0 }],
-    total: 120.0,
-    date: "2025-01-02",
-    status: "start",
-    priority: "normal",
-    description: "Montagem de 2 guarda-roupas."
-  },
-  "005": {
-    id: "005",
-    clientName: "Paula Costa",
-    clientId: "5",
-    services: [{ name: "Pintura", quantity: 1, price: 350.0 }],
-    total: 350.0,
-    date: "2025-01-01",
-    status: "cancelled",
-    priority: "high",
-    description: "Cliente cancelou por motivos pessoais."
-  },
-};
+import { useOrders } from "@/hooks/useOrders";
 
 export default function PrintOrderPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const componentRef = useRef<HTMLDivElement>(null);
+  const { orders, isLoading } = useOrders();
 
-  const order = id ? mockOrders[id] : null;
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+  });
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // Enable/disable styles for print
+  useEffect(() => {
+    // Force background graphics for printing
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          background-color: white !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+        @page {
+          margin: 0;
+          size: auto;
+        }
+        html, #root, .page-container {
+          height: auto !important;
+          background-color: white !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  const order = orders?.find(o => o.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -92,43 +70,60 @@ export default function PrintOrderPage() {
   }
 
   return (
-    <div className="min-h-screen print:min-h-0 bg-gray-100 dark:bg-zinc-950 flex flex-col">
-      {/* Header - Hidden on Print */}
-      <div className="bg-background border-b border-border p-4 flex items-center justify-between print:hidden shadow-sm z-10">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <span className="font-semibold text-lg">Pré-visualização de Impressão</span>
+    <div className="page-container bg-background print:h-auto print:overflow-visible flex flex-col h-screen">
+      <div className="print:hidden flex-none">
+        {/* Mobile Header */}
+        <div className="lg:hidden">
+          <TopNav
+            title="Visualização de Impressão"
+            showBack
+            rightAction={
+              <Button onClick={() => handlePrint()} size="icon" variant="ghost">
+                <Printer className="w-5 h-5 text-primary" />
+              </Button>
+            }
+          />
         </div>
-        <Button onClick={handlePrint} className="btn-primary">
-          <Printer className="w-4 h-4 mr-2" />
-          Imprimir
-        </Button>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:block">
+          <DesktopHeader
+            title="Visualização de Impressão"
+            actions={
+              <div className="flex gap-2">
+                <Link to={`/ordens/${id}`}>
+                  <Button variant="ghost">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar
+                  </Button>
+                </Link>
+                <Button onClick={() => handlePrint()} className="btn-primary">
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimir
+                </Button>
+              </div>
+            }
+          />
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-auto p-4 md:p-8 flex items-start justify-center print:p-0 print:overflow-visible print:block">
-        <div className="print:w-full">
-          <ServiceOrderPrint order={order} />
+      <div className="flex-1 flex justify-center p-4 bg-secondary/30 overflow-auto print:p-0 print:bg-white print:overflow-visible print:block dark:bg-black/20">
+        <div className="w-full max-w-[800px] print:w-full print:max-w-none print:h-auto animate-fade-in print:animate-none">
+          <div className="shadow-lg print:shadow-none bg-white min-h-[500px] print:min-h-0">
+            <ServiceOrderPrint ref={componentRef} order={order} />
+          </div>
+
+          <div className="mt-8 text-center print:hidden pb-8">
+            <p className="text-muted-foreground text-sm mb-4">
+              Verifique se a visualização está correta antes de imprimir.
+            </p>
+            <Button onClick={() => handlePrint()} className="btn-primary w-full md:w-auto md:min-w-[200px]">
+              <Printer className="w-4 h-4 mr-2" />
+              Confirmar Impressão
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* Print Specific Styles */}
-      <style>{`
-        @media print {
-          @page {
-            margin: 0;
-            size: auto; /* thermal printers usually handle 'auto' as continuous, but some need explicit height hints */
-          }
-          html, body {
-            height: auto !important;
-            overflow: visible !important;
-            background: white;
-            color: black;
-          }
-        }
-      `}</style>
     </div>
   );
 }

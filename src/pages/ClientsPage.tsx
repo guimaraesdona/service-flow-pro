@@ -6,77 +6,15 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Plus, Search, Phone, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import { Client } from "@/types";
-
-const mockClients: Client[] = [
-  {
-    id: "1",
-    name: "Maria Silva",
-    email: "maria@email.com",
-    phone: "(11) 99999-1111",
-    document: "123.456.789-00",
-    birthDate: "1985-03-15",
-    addresses: [
-      {
-        id: "1",
-        label: "Casa",
-        cep: "01310-100",
-        street: "Av. Paulista",
-        number: "1000",
-        complement: "Sala 501",
-        neighborhood: "Bela Vista",
-        city: "São Paulo",
-        state: "SP",
-        isDefault: true
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "João Santos",
-    email: "joao@email.com",
-    phone: "(11) 99999-2222",
-    document: "987.654.321-00",
-    birthDate: "1990-07-20",
-    addresses: []
-  },
-  {
-    id: "3",
-    name: "Ana Oliveira",
-    email: "ana@email.com",
-    phone: "(11) 99999-3333",
-    document: "456.789.123-00",
-    birthDate: "1988-11-10",
-    addresses: []
-  },
-  {
-    id: "4",
-    name: "Carlos Mendes",
-    email: "carlos@email.com",
-    phone: "(11) 99999-4444",
-    document: "789.123.456-00",
-    birthDate: "1982-05-25",
-    addresses: []
-  },
-  {
-    id: "5",
-    name: "Paula Costa",
-    email: "paula@email.com",
-    phone: "(11) 99999-5555",
-    document: "321.654.987-00",
-    birthDate: "1995-09-08",
-    addresses: []
-  },
-];
+import { useClients } from "@/hooks/useClients";
 
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
-  const [clients] = useState<Client[]>(mockClients);
+  const { clients, isLoading } = useClients();
 
   const filteredClients = clients.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+    c.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -123,7 +61,11 @@ export default function ClientsPage() {
         </div>
 
         {/* Client List */}
-        {filteredClients.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredClients.length > 0 ? (
           <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:gap-4 lg:space-y-0">
             {filteredClients.map((client, index) => (
               <Link
@@ -140,14 +82,14 @@ export default function ClientsPage() {
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Mail className="w-3 h-3" />
-                      {client.email}
+                      {client.email || "Sem email"}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Phone className="w-3 h-3" />
-                    {formatPhone(client.phone)}
+                    {client.phone ? formatPhone(client.phone) : "-"}
                   </span>
                 </div>
               </Link>

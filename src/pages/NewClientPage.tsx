@@ -12,10 +12,12 @@ import { AddressManager } from "@/components/client/AddressManager";
 import { Address } from "@/types";
 import { formatDocument, formatPhone } from "@/lib/formatters";
 
+import { useClients } from "@/hooks/useClients";
+
 export default function NewClientPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const { createClient } = useClients();
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
@@ -51,16 +53,29 @@ export default function NewClientPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await createClient.mutateAsync({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        document: formData.document,
+        birthDate: formData.birthDate,
+        addresses: addresses
+      });
+
       toast({
         title: "Cliente cadastrado!",
         description: `${formData.name} foi adicionado com sucesso.`,
       });
       navigate("/clientes");
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao cadastrar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -136,7 +151,7 @@ export default function NewClientPage() {
               <div className="space-y-4 animate-slide-up mt-4 lg:mt-0">
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">Voltar</Button>
-                  <Button type="submit" className="flex-1 btn-primary" disabled={isLoading}>{isLoading ? "Salvando..." : "Cadastrar"}</Button>
+                  <Button type="submit" className="flex-1 btn-primary" disabled={createClient.isPending}>{createClient.isPending ? "Salvando..." : "Cadastrar"}</Button>
                 </div>
               </div>
             </>

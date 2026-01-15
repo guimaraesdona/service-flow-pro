@@ -1,6 +1,7 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Users, Wrench, ClipboardList, LogOut, LayoutDashboard, DollarSign, Settings, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -15,8 +16,10 @@ const navItems = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 

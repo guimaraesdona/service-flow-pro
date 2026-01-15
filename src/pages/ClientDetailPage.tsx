@@ -6,41 +6,24 @@ import { Edit, User, Mail, Phone, FileText, MapPin, Calendar } from "lucide-reac
 
 import { Client } from "@/types";
 
-const mockClients: Record<string, Client> = {
-  "1": {
-    id: "1",
-    name: "Maria Silva",
-    email: "maria@email.com",
-    phone: "(11) 99999-1111",
-    document: "123.456.789-00",
-    birthDate: "1985-03-15",
-    addresses: [
-      {
-        id: "1",
-        label: "Casa",
-        cep: "01310-100",
-        street: "Av. Paulista",
-        number: "1000",
-        complement: "Sala 501",
-        neighborhood: "Bela Vista",
-        city: "São Paulo",
-        state: "SP",
-        isDefault: true
-      }
-    ]
-  },
-  // ... other mock clients simplified for brevity, assume similar structure or empty arrays
-  "2": { id: "2", name: "João Santos", email: "joao@email.com", phone: "(11) 99999-2222", document: "987.654.321-00", birthDate: "1990-07-20", addresses: [] },
-  "3": { id: "3", name: "Ana Oliveira", email: "ana@email.com", phone: "(11) 99999-3333", document: "456.789.123-00", birthDate: "1988-11-10", addresses: [] },
-  "4": { id: "4", name: "Carlos Mendes", email: "carlos@email.com", phone: "(11) 99999-4444", document: "789.123.456-00", birthDate: "1982-05-25", addresses: [] },
-  "5": { id: "5", name: "Paula Costa", email: "paula@email.com", phone: "(11) 99999-5555", document: "321.654.987-00", birthDate: "1995-09-08", addresses: [] },
-};
+import { useClients } from "@/hooks/useClients";
 
 export default function ClientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { clients, isLoading } = useClients();
 
-  const client = id ? mockClients[id] : null;
+  const client = clients?.find(c => c.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="page-container bg-background">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!client) {
     return (

@@ -8,50 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
-
-const mockServices: Record<string, Service> = {
-  "1": {
-    id: "1",
-    name: "Manutenção Preventiva",
-    description: "Verificação geral e ajustes preventivos para garantir o bom funcionamento dos equipamentos e evitar problemas futuros.",
-    price: 150.0,
-  },
-  "2": {
-    id: "2",
-    name: "Instalação Elétrica",
-    description: "Instalação de pontos elétricos, tomadas, interruptores e fiação em geral, seguindo normas técnicas de segurança.",
-    price: 250.0,
-  },
-  "3": {
-    id: "3",
-    name: "Reparo Hidráulico",
-    description: "Conserto de vazamentos, desentupimento e manutenção de encanamentos, caixas d'água e sistemas hidráulicos.",
-    price: 180.0,
-  },
-  "4": {
-    id: "4",
-    name: "Pintura",
-    description: "Pintura de ambientes internos e externos com preparo de superfície, aplicação de massa e acabamento profissional.",
-    price: 350.0,
-  },
-  "5": {
-    id: "5",
-    name: "Montagem de Móveis",
-    description: "Montagem e instalação de móveis residenciais e comerciais, incluindo fixação em parede quando necessário.",
-    price: 120.0,
-  },
-};
+import { useServices } from "@/hooks/useServices";
 
 export default function EditServicePage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { services, updateService } = useServices();
+
+  const service = services?.find(s => s.id === id);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,17 +24,14 @@ export default function EditServicePage() {
   });
 
   useEffect(() => {
-    if (id && mockServices[id]) {
-      const service = mockServices[id];
+    if (service) {
       setFormData({
         name: service.name,
-        description: service.description,
+        description: service.description || "",
         price: service.price.toString(),
       });
     }
-  }, [id]);
-
-  const service = id ? mockServices[id] : null;
+  }, [service]);
 
   if (!service) {
     return (
@@ -101,16 +62,30 @@ export default function EditServicePage() {
       return;
     }
 
-    setIsLoading(true);
+    if (!id) return;
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await updateService.mutateAsync({
+        id,
+        data: {
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+        }
+      });
+
       toast({
         title: "Serviço atualizado!",
         description: `${formData.name} foi atualizado com sucesso.`,
       });
       navigate(`/servicos/${id}`);
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -169,9 +144,9 @@ export default function EditServicePage() {
           <Button
             type="submit"
             className="w-full btn-primary mt-6"
-            disabled={isLoading}
+            disabled={updateService.isPending}
           >
-            {isLoading ? "Salvando..." : "Salvar"}
+            {updateService.isPending ? "Salvando..." : "Salvar"}
           </Button>
         </form>
       </div>

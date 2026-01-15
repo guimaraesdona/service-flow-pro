@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -67,16 +68,39 @@ export default function RegisterPage() {
       });
       return;
     }
-    
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            phone: formData.phone,
+            document: formData.document,
+            // Add other fields as needed to metadata or create a separate profile update step
+          },
+        },
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Cadastro realizado!",
-        description: "Sua conta foi criada com sucesso.",
+        description: "Verifique seu email para confirmar a conta.",
       });
-      navigate("/dashboard");
-    }, 1500);
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

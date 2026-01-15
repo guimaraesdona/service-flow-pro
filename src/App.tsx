@@ -34,48 +34,59 @@ import NotFound from "./pages/NotFound";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Auth Routes */}
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/cadastro" element={<RegisterPage />} />
-            <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth Routes */}
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/cadastro" element={<RegisterPage />} />
+              <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
 
-            {/* App Routes with Layout */}
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/clientes" element={<ClientsPage />} />
-              <Route path="/clientes/novo" element={<NewClientPage />} />
-              <Route path="/clientes/:id" element={<ClientDetailPage />} />
-              <Route path="/clientes/:id/editar" element={<EditClientPage />} />
-              <Route path="/servicos" element={<ServicesPage />} />
-              <Route path="/servicos/novo" element={<NewServicePage />} />
-              <Route path="/servicos/:id" element={<ServiceDetailPage />} />
-              <Route path="/servicos/:id/editar" element={<EditServicePage />} />
-              <Route path="/ordens" element={<OrdersPage />} />
-              <Route path="/ordens/nova" element={<NewOrderPage />} />
-              <Route path="/ordens/:id" element={<OrderDetailPage />} />
-              <Route path="/ordens/:id/editar" element={<EditOrderPage />} />
-              <Route path="/ordens/:id/imprimir" element={<PrintOrderPage />} />
-              <Route path="/notificacoes" element={<NotificationsPage />} />
-              <Route path="/financeiro" element={<FinancialPage />} />
-              <Route path="/configuracoes" element={<SettingsPage />} />
-              <Route path="/relatorios" element={<ReportsPage />} />
-            </Route>
+              {/* App Routes with Layout */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/clientes" element={<ClientsPage />} />
+                <Route path="/clientes/novo" element={<NewClientPage />} />
+                <Route path="/clientes/:id" element={<ClientDetailPage />} />
+                <Route path="/clientes/:id/editar" element={<EditClientPage />} />
+                <Route path="/servicos" element={<ServicesPage />} />
+                <Route path="/servicos/novo" element={<NewServicePage />} />
+                <Route path="/servicos/:id" element={<ServiceDetailPage />} />
+                <Route path="/servicos/:id/editar" element={<EditServicePage />} />
+                <Route path="/ordens" element={<OrdersPage />} />
+                <Route path="/ordens/nova" element={<NewOrderPage />} />
+                <Route path="/ordens/:id" element={<OrderDetailPage />} />
+                <Route path="/ordens/:id/editar" element={<EditOrderPage />} />
+                <Route path="/ordens/:id/imprimir" element={<PrintOrderPage />} />
+                <Route path="/notificacoes" element={<NotificationsPage />} />
+                <Route path="/financeiro" element={<FinancialPage />} />
+                <Route path="/configuracoes" element={<SettingsPage />} />
+                <Route path="/relatorios" element={<ReportsPage />} />
+              </Route>
 
-            {/* Catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

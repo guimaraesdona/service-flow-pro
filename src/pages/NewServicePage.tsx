@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
+import { useServices } from "@/hooks/useServices";
+
 export default function NewServicePage() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { createService } = useServices();
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
 
   const [formData, setFormData] = useState({
@@ -37,16 +39,26 @@ export default function NewServicePage() {
       return;
     }
 
-    setIsLoading(true);
+    try {
+      await createService.mutateAsync({
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        active: true
+      });
 
-    setTimeout(() => {
-      setIsLoading(false);
       toast({
         title: "Serviço cadastrado!",
         description: `${formData.name} foi adicionado com sucesso.`,
       });
       navigate("/servicos");
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao cadastrar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -125,9 +137,9 @@ export default function NewServicePage() {
             <Button
               type="submit"
               className="w-full btn-primary mt-6"
-              disabled={isLoading}
+              disabled={createService.isPending}
             >
-              {isLoading ? "Salvando..." : "Cadastrar"}
+              {createService.isPending ? "Salvando..." : "Cadastrar"}
             </Button>
           </div>
         </form>

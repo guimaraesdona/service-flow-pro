@@ -3,51 +3,24 @@ import { TopNav } from "@/components/layout/TopNav";
 import { Button } from "@/components/ui/button";
 import { Edit, Wrench, DollarSign, FileText } from "lucide-react";
 
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
-
-const mockServices: Record<string, Service> = {
-  "1": {
-    id: "1",
-    name: "Manutenção Preventiva",
-    description: "Verificação geral e ajustes preventivos para garantir o bom funcionamento dos equipamentos e evitar problemas futuros.",
-    price: 150.0,
-  },
-  "2": {
-    id: "2",
-    name: "Instalação Elétrica",
-    description: "Instalação de pontos elétricos, tomadas, interruptores e fiação em geral, seguindo normas técnicas de segurança.",
-    price: 250.0,
-  },
-  "3": {
-    id: "3",
-    name: "Reparo Hidráulico",
-    description: "Conserto de vazamentos, desentupimento e manutenção de encanamentos, caixas d'água e sistemas hidráulicos.",
-    price: 180.0,
-  },
-  "4": {
-    id: "4",
-    name: "Pintura",
-    description: "Pintura de ambientes internos e externos com preparo de superfície, aplicação de massa e acabamento profissional.",
-    price: 350.0,
-  },
-  "5": {
-    id: "5",
-    name: "Montagem de Móveis",
-    description: "Montagem e instalação de móveis residenciais e comerciais, incluindo fixação em parede quando necessário.",
-    price: 120.0,
-  },
-};
+import { useServices } from "@/hooks/useServices";
 
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { services, isLoading } = useServices();
 
-  const service = id ? mockServices[id] : null;
+  const service = services?.find(s => s.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="page-container bg-background">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!service) {
     return (
