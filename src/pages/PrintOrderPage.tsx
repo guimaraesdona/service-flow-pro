@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { ServiceOrderPrint } from "@/components/print/ServiceOrderPrint";
 import { useOrders } from "@/hooks/useOrders";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function PrintOrderPage() {
   const { id } = useParams();
   const componentRef = useRef<HTMLDivElement>(null);
   const { orders, isLoading } = useOrders();
+  const { profile } = useProfile();
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -110,7 +112,7 @@ export default function PrintOrderPage() {
       <div className="flex-1 flex justify-center p-4 bg-secondary/30 overflow-auto print:p-0 print:bg-white print:overflow-visible print:block dark:bg-black/20">
         <div className="w-full max-w-[800px] print:w-full print:max-w-none print:h-auto animate-fade-in print:animate-none">
           <div className="shadow-lg print:shadow-none bg-white min-h-[500px] print:min-h-0">
-            <ServiceOrderPrint ref={componentRef} order={order} />
+            <ServiceOrderPrint ref={componentRef} order={order} logoUrl={profile?.avatar_url} />
           </div>
 
           <div className="mt-8 text-center print:hidden pb-8">

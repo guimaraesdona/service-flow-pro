@@ -4,9 +4,10 @@ import { Receipt, Smartphone } from "lucide-react";
 
 interface ServiceOrderPrintProps {
     order: ServiceOrder;
+    logoUrl?: string | null;
 }
 
-export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintProps>(({ order }, ref) => {
+export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintProps>(({ order, logoUrl }, ref) => {
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -26,9 +27,15 @@ export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintPro
             {/* Header */}
             <div className="text-center border-b-2 border-black pb-4 mb-4">
                 <div className="flex justify-center mb-2">
-                    <div className="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center">
-                        <Receipt className="w-6 h-6" />
-                    </div>
+                    {logoUrl ? (
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center">
+                            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        </div>
+                    ) : (
+                        <div className="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center">
+                            <Receipt className="w-6 h-6" />
+                        </div>
+                    )}
                 </div>
                 <h1 className="font-extrabold text-xl uppercase">Lava Jato Jardim América LTDA</h1>
                 {/* <p className="text-sm font-bold">Soluções Rápidas e Eficientes</p> */}
