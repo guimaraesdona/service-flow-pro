@@ -16,6 +16,7 @@ import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
 import { useRef } from "react";
+import { ImageUploader } from "@/components/form/ImageUploader";
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "start", label: "Iniciar" },
@@ -36,7 +37,7 @@ export default function NewOrderPage() {
   const { createOrder } = useOrders();
   const { clients } = useClients();
   const { services: availableServices } = useServices();
-  const { uploadImage, isUploading } = useStorage();
+  const { deleteImage } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedClient, setSelectedClient] = useState("");
@@ -51,6 +52,17 @@ export default function NewOrderPage() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [imageUrl, setImageUrl] = useState<string>("");
+
+  const handleImageChange = async (newUrl: string) => {
+    if (imageUrl && imageUrl !== newUrl) {
+      try {
+        await deleteImage(imageUrl);
+      } catch (error) {
+        console.error("Failed to delete transient image:", error);
+      }
+    }
+    setImageUrl(newUrl);
+  };
 
   const selectedClientData = clients?.find(c => c.id === selectedClient);
 
@@ -76,25 +88,7 @@ export default function NewOrderPage() {
   const discountValue = parseFloat(discount) || 0;
   const total = Math.max(0, subtotal - discountValue);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = await uploadImage(file, "app-images");
-      if (url) {
-        setImageUrl(url);
-        toast({
-          title: "Imagem enviada",
-          description: "Imagem anexada com sucesso.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Falha ao enviar imagem.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,29 +136,10 @@ export default function NewOrderPage() {
         <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
           <div className="space-y-5">
             <div className="flex justify-center mb-6 lg:justify-start">
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileSelect}
+              <ImageUploader
+                value={imageUrl}
+                onChange={handleImageChange}
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
-              >
-                {imageUrl ? (
-                  <img src={imageUrl} alt="Order" className="w-full h-full object-cover" />
-                ) : (
-                  <Camera className="w-8 h-8 text-muted-foreground" />
-                )}
-                {isUploading && (
-                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                    <span className="text-xs font-bold">...</span>
-                  </div>
-                )}
-              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

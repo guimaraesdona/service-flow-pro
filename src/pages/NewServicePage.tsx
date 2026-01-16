@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,14 +12,26 @@ import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/Custom
 
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
+import { ImageUploader } from "@/components/form/ImageUploader";
 
 export default function NewServicePage() {
   const navigate = useNavigate();
   const { createService } = useServices();
-  const { uploadImage, isUploading } = useStorage();
+  const { deleteImage } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+
+  const handleImageChange = async (newUrl: string) => {
+    if (imageUrl && imageUrl !== newUrl) {
+      try {
+        await deleteImage(imageUrl);
+      } catch (error) {
+        console.error("Failed to delete transient image:", error);
+      }
+    }
+    setImageUrl(newUrl);
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -31,25 +43,7 @@ export default function NewServicePage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = await uploadImage(file, "app-images");
-      if (url) {
-        setImageUrl(url);
-        toast({
-          title: "Imagem enviada",
-          description: "Imagem atualizada com sucesso.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Falha ao enviar imagem.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,29 +104,10 @@ export default function NewServicePage() {
           <div className="space-y-5">
             {/* Image */}
             <div className="flex justify-center mb-6 lg:justify-start">
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileSelect}
+              <ImageUploader
+                value={imageUrl}
+                onChange={handleImageChange}
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
-              >
-                {imageUrl ? (
-                  <img src={imageUrl} alt="Service" className="w-full h-full object-cover" />
-                ) : (
-                  <Camera className="w-8 h-8 text-muted-foreground" />
-                )}
-                {isUploading && (
-                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                    <span className="text-xs font-bold">...</span>
-                  </div>
-                )}
-              </button>
             </div>
 
             <div className="space-y-2">
