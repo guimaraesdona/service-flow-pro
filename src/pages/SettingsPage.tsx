@@ -42,7 +42,8 @@ export default function SettingsPage() {
     email: "",
     phone: "",
     document: "",
-    avatar_url: ""
+    avatar_url: "",
+    use_logo_for_print: true
   });
 
   // Load profile data when available
@@ -53,7 +54,8 @@ export default function SettingsPage() {
         email: profile.email || "",
         phone: profile.phone || "",
         document: profile.document || "",
-        avatar_url: profile.avatar_url || ""
+        avatar_url: profile.avatar_url || "",
+        use_logo_for_print: profile.use_logo_for_print ?? true
       });
     }
   }, [profile]);
@@ -88,6 +90,7 @@ export default function SettingsPage() {
         phone: userData.phone,
         document: userData.document,
         avatar_url: userData.avatar_url,
+        use_logo_for_print: userData.use_logo_for_print,
       });
 
       // If avatar changed and there was an old one, delete the old one
@@ -139,7 +142,17 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{userData.name || "Sua Empresa"}</h2>
-              <p className="text-sm text-muted-foreground">{userData.email || "email@exemplo.com"}</p>
+              <div className="flex items-center gap-2 mt-1">
+                 <Switch
+                    id="use_logo"
+                    checked={userData.use_logo_for_print}
+                    onCheckedChange={(checked) => setUserData(prev => ({ ...prev, use_logo_for_print: checked }))}
+                    className="scale-75 origin-left"
+                  />
+                  <Label htmlFor="use_logo" className="text-xs text-muted-foreground cursor-pointer">
+                    Usar logo na impressão
+                  </Label>
+              </div>
             </div>
           </div>
 

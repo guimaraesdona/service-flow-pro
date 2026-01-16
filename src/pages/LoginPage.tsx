@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { AppLogo } from "@/components/ui/app-logo";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -52,9 +53,7 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-10 animate-fade-in">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-soft">
-              <span className="text-2xl font-bold text-primary-foreground">OS</span>
-            </div>
+            <AppLogo size="lg" className="mb-4 shadow-soft" />
             <h1 className="text-3xl font-bold text-foreground">Bem-vindo</h1>
             <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
           </div>
