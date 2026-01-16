@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { Camera } from "lucide-react";
@@ -7,13 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 import { useServices } from "@/hooks/useServices";
+import { useStorage } from "@/hooks/useStorage";
 
 export default function EditServicePage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { services, updateService } = useServices();
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const service = services?.find(s => s.id === id);
 
@@ -23,6 +27,9 @@ export default function EditServicePage() {
     price: "",
   });
 
+  const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+  const [imageUrl, setImageUrl] = useState<string>("");
+
   useEffect(() => {
     if (service) {
       setFormData({
@@ -30,6 +37,15 @@ export default function EditServicePage() {
         description: service.description || "",
         price: service.price.toString(),
       });
+      setImageUrl(service.imageUrl || "");
+
+      if (service.customFields) {
+        const values: CustomFieldValue[] = Object.entries(service.customFields).map(([key, value]) => ({
+          fieldId: key,
+          value: value as string | number | boolean
+        }));
+        setCustomFieldValues(values);
+      }
     }
   }, [service]);
 
@@ -50,6 +66,26 @@ export default function EditServicePage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = await uploadImage(file, "app-images");
+      if (url) {
+        setImageUrl(url);
+        toast({
+          title: "Imagem enviada",
+          description: "Imagem atualizada com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao enviar imagem.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -65,12 +101,19 @@ export default function EditServicePage() {
     if (!id) return;
 
     try {
+      const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
+        ...acc,
+        [curr.fieldId]: curr.value
+      }), {});
+
       await updateService.mutateAsync({
         id,
         data: {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
+          customFields: customFieldsObject,
+          imageUrl: imageUrl
         }
       });
 
@@ -96,11 +139,28 @@ export default function EditServicePage() {
         <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up">
           {/* Image */}
           <div className="flex justify-center mb-6">
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileSelect}
+            />
             <button
               type="button"
-              className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
             >
-              <Camera className="w-8 h-8 text-muted-foreground" />
+              {imageUrl ? (
+                <img src={imageUrl} alt="Service" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-8 h-8 text-muted-foreground" />
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                  <span className="text-xs font-bold">...</span>
+                </div>
+              )}
             </button>
           </div>
 
@@ -140,6 +200,12 @@ export default function EditServicePage() {
               required
             />
           </div>
+
+          <CustomFieldsRenderer
+            entityType="service"
+            values={customFieldValues}
+            onValuesChange={setCustomFieldValues}
+          />
 
           <Button
             type="submit"

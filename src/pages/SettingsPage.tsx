@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
@@ -17,13 +17,17 @@ import {
   Moon,
   Sun,
   Save,
-  LogOut
+  LogOut,
+  Camera
 } from "lucide-react";
+import { useStorage } from "@/hooks/useStorage";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
@@ -32,6 +36,7 @@ export default function SettingsPage() {
     email: "contato@empresa.com",
     phone: "(11) 99999-0000",
     document: "12.345.678/0001-00",
+    avatar: ""
   });
 
   const toggleDarkMode = (enabled: boolean) => {
@@ -40,6 +45,26 @@ export default function SettingsPage() {
 
   const updateField = (field: string, value: string) => {
     setUserData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = await uploadImage(file, "app-images");
+      if (url) {
+        setUserData(prev => ({ ...prev, avatar: url }));
+        toast({
+          title: "Avatar atualizado",
+          description: "Sua foto de perfil foi atualizada.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao enviar imagem.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleSave = () => {
@@ -73,8 +98,35 @@ export default function SettingsPage() {
         {/* Profile Section */}
         <div className="card-elevated p-6 mb-6 animate-fade-in">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-8 h-8 text-primary" />
+            <div className="relative">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-primary/50 transition-colors relative"
+              >
+                {userData.avatar ? (
+                  <img src={userData.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-primary" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                    <span className="text-[10px] font-bold">...</span>
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
+              >
+                <Camera className="w-3 h-3" />
+              </button>
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{userData.name}</h2>

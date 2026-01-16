@@ -22,6 +22,7 @@ export interface Client {
     avatar?: string;
     createdAt?: string;
     updatedAt?: string;
+    customFields?: Record<string, any>;
 }
 
 export interface Service {
@@ -32,6 +33,8 @@ export interface Service {
     active?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    customFields?: Record<string, any>;
+    imageUrl?: string;
 }
 
 export interface ServiceItem {
@@ -56,4 +59,6 @@ export interface ServiceOrder {
     scheduledAt?: string;
     discount?: number;
     number?: string;
+    customFields?: Record<string, any>;
+    imageUrl?: string;
 }

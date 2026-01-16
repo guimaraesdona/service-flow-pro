@@ -1,11 +1,12 @@
+import { forwardRef } from "react";
 import { ServiceOrder } from "@/types";
-import { Receipt, Smartphone, MapPin, Globe } from "lucide-react";
+import { Receipt, Smartphone } from "lucide-react";
 
 interface ServiceOrderPrintProps {
     order: ServiceOrder;
 }
 
-export function ServiceOrderPrint({ order }: ServiceOrderPrintProps) {
+export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintProps>(({ order }, ref) => {
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -21,7 +22,7 @@ export function ServiceOrderPrint({ order }: ServiceOrderPrintProps) {
     };
 
     return (
-        <div className="w-[80mm] bg-white text-black p-4 font-mono text-base leading-tight mx-auto shadow-sm print:shadow-none print:w-full print:mx-0 print:p-0" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+        <div ref={ref} className="w-[80mm] bg-white text-black p-4 font-mono text-base leading-tight mx-auto shadow-sm print:shadow-none print:w-full print:mx-0 print:p-0" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
             {/* Header */}
             <div className="text-center border-b-2 border-black pb-4 mb-4">
                 <div className="flex justify-center mb-2">
@@ -106,4 +107,6 @@ export function ServiceOrderPrint({ order }: ServiceOrderPrintProps) {
             </div>
         </div>
     );
-}
+});
+
+ServiceOrderPrint.displayName = "ServiceOrderPrint";

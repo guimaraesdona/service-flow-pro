@@ -17,7 +17,11 @@ export function useServices() {
 
         if (error) throw error;
 
-        return (data || []) as Service[];
+        return (data || []).map(service => ({
+            ...service,
+            customFields: service.custom_fields || {},
+            imageUrl: service.image_url
+        })) as Service[];
     };
 
     const { data: services = [], isLoading, error } = useQuery({
@@ -36,6 +40,8 @@ export function useServices() {
                     description: newService.description,
                     price: newService.price,
                     active: newService.active ?? true,
+                    custom_fields: newService.customFields || {},
+                    image_url: newService.imageUrl,
                 })
                 .select()
                 .single();
@@ -57,6 +63,8 @@ export function useServices() {
                     description: data.description,
                     price: data.price,
                     active: data.active,
+                    custom_fields: data.customFields || {},
+                    image_url: data.imageUrl,
                 })
                 .eq("id", id);
 

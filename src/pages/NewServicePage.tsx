@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
@@ -11,10 +11,14 @@ import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 import { useServices } from "@/hooks/useServices";
+import { useStorage } from "@/hooks/useStorage";
 
 export default function NewServicePage() {
   const navigate = useNavigate();
   const { createService } = useServices();
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
 
   const [formData, setFormData] = useState({
@@ -25,6 +29,26 @@ export default function NewServicePage() {
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = await uploadImage(file, "app-images");
+      if (url) {
+        setImageUrl(url);
+        toast({
+          title: "Imagem enviada",
+          description: "Imagem atualizada com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao enviar imagem.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,11 +64,18 @@ export default function NewServicePage() {
     }
 
     try {
+      const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
+        ...acc,
+        [curr.fieldId]: curr.value
+      }), {});
+
       await createService.mutateAsync({
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        active: true
+        active: true,
+        customFields: customFieldsObject,
+        imageUrl: imageUrl
       });
 
       toast({
@@ -79,11 +110,28 @@ export default function NewServicePage() {
           <div className="space-y-5">
             {/* Image */}
             <div className="flex justify-center mb-6 lg:justify-start">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
               <button
                 type="button"
-                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
               >
-                <Camera className="w-8 h-8 text-muted-foreground" />
+                {imageUrl ? (
+                  <img src={imageUrl} alt="Service" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                    <span className="text-xs font-bold">...</span>
+                  </div>
+                )}
               </button>
             </div>
 

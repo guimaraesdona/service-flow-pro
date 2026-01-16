@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { 
-  FileText, 
-  Download, 
-  Mail, 
+import {
+  FileText,
+  Download,
+  Mail,
   Calendar,
   User,
   FileSpreadsheet,
   File
 } from "lucide-react";
+import { useClients } from "@/hooks/useClients";
+import { useOrders } from "@/hooks/useOrders";
 
 const months = [
   { value: "01", label: "Janeiro" },
@@ -30,22 +32,47 @@ const months = [
   { value: "12", label: "Dezembro" },
 ];
 
-const years = ["2025", "2024", "2023"];
-
-const clients = [
-  { id: "all", name: "Todos os Clientes" },
-  { id: "1", name: "Maria Silva" },
-  { id: "2", name: "João Santos" },
-  { id: "3", name: "Ana Oliveira" },
-  { id: "4", name: "Carlos Mendes" },
-  { id: "5", name: "Paula Costa" },
-];
+const currentYear = new Date().getFullYear();
+const years = [currentYear.toString(), (currentYear - 1).toString(), (currentYear - 2).toString()];
 
 export default function ReportsPage() {
-  const [selectedMonth, setSelectedMonth] = useState("01");
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const { clients } = useClients();
+  const { orders } = useOrders();
+
+  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [selectedClient, setSelectedClient] = useState("all");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+
+    return orders.filter(order => {
+      const orderDate = new Date(order.date);
+      const monthMatch = String(orderDate.getMonth() + 1).padStart(2, '0') === selectedMonth;
+      const yearMatch = String(orderDate.getFullYear()) === selectedYear;
+      const clientMatch = selectedClient === "all" || order.clientId === selectedClient;
+
+      // Filter out cancelled orders for revenue calculations, but maybe keep them for general listing if needed?
+      // For this report summary, let's keep all checks here, but specific metrics might exclude cancelled.
+      return monthMatch && yearMatch && clientMatch;
+    });
+  }, [orders, selectedMonth, selectedYear, selectedClient]);
+
+  const metrics = useMemo(() => {
+    const validOrders = filteredOrders.filter(o => o.status !== "cancelled");
+    const totalOrders = filteredOrders.length;
+    const totalRevenue = validOrders.reduce((acc, order) => acc + order.total, 0);
+    const finishedCount = filteredOrders.filter(o => o.status === "finished").length;
+    const pendingCount = filteredOrders.filter(o => o.status !== "finished" && o.status !== "cancelled").length;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      finishedCount,
+      pendingCount
+    };
+  }, [filteredOrders]);
 
   const handleExportPDF = () => {
     setIsGenerating(true);
@@ -85,7 +112,8 @@ export default function ReportsPage() {
   };
 
   const getClientName = (id: string) => {
-    return clients.find(c => c.id === id)?.name || "";
+    if (id === "all") return "Todos os Clientes";
+    return clients?.find(c => c.id === id)?.name || "Cliente Desconhecido";
   };
 
   return (
@@ -155,7 +183,8 @@ export default function ReportsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client) => (
+                      <SelectItem value="all">Todos os Clientes</SelectItem>
+                      {clients?.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
                         </SelectItem>
@@ -189,19 +218,21 @@ export default function ReportsPage() {
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">12</p>
+                    <p className="text-2xl font-bold text-primary">{metrics.totalOrders}</p>
                     <p className="text-xs text-muted-foreground">Ordens</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-finished">R$ 3.420</p>
+                    <p className="text-2xl font-bold text-status-finished">
+                      R$ {metrics.totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
                     <p className="text-xs text-muted-foreground">Faturamento</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-progress">8</p>
+                    <p className="text-2xl font-bold text-status-progress">{metrics.finishedCount}</p>
                     <p className="text-xs text-muted-foreground">Finalizadas</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-waiting">4</p>
+                    <p className="text-2xl font-bold text-status-waiting">{metrics.pendingCount}</p>
                     <p className="text-xs text-muted-foreground">Pendentes</p>
                   </div>
                 </div>

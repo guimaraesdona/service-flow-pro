@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { formatPhone, formatDocument } from "@/lib/formatters";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
@@ -9,13 +9,17 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { AddressManager } from "@/components/client/AddressManager";
 import { Client, Address } from "@/types";
+import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 import { useClients } from "@/hooks/useClients";
+import { useStorage } from "@/hooks/useStorage";
 
 export default function EditClientPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { clients, updateClient } = useClients();
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const client = clients?.find(c => c.id === id);
 
@@ -30,6 +34,8 @@ export default function EditClientPage() {
   });
 
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   useEffect(() => {
     if (client) {
@@ -41,6 +47,15 @@ export default function EditClientPage() {
         phone: client.phone || "",
       });
       setAddresses(client.addresses || []);
+      setAvatarUrl(client.avatar || "");
+
+      if (client.customFields) {
+        const values: CustomFieldValue[] = Object.entries(client.customFields).map(([key, value]) => ({
+          fieldId: key,
+          value: value as string | number | boolean
+        }));
+        setCustomFieldValues(values);
+      }
     }
   }, [client]);
 
@@ -61,12 +76,33 @@ export default function EditClientPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = await uploadImage(file, "app-images");
+      if (url) {
+        setAvatarUrl(url);
+        toast({
+          title: "Imagem enviada",
+          description: "Avatar atualizado com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao enviar imagem.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleNext = () => {
     if (!formData.name || !formData.email) {
       toast({
         title: "Campos obrigatórios",
         description: "Nome e email são obrigatórios.",
         variant: "destructive",
+        duration: 3000,
       });
       return;
     }
@@ -78,6 +114,11 @@ export default function EditClientPage() {
     if (!id) return;
 
     try {
+      const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
+        ...acc,
+        [curr.fieldId]: curr.value
+      }), {});
+
       await updateClient.mutateAsync({
         id,
         data: {
@@ -86,7 +127,9 @@ export default function EditClientPage() {
           phone: formData.phone,
           document: formData.document,
           birthDate: formData.birthDate,
-          addresses: addresses
+          addresses: addresses,
+          customFields: customFieldsObject,
+          avatar: avatarUrl
         }
       });
 
@@ -123,11 +166,28 @@ export default function EditClientPage() {
             <div className="space-y-4 animate-slide-up">
               {/* Avatar */}
               <div className="flex justify-center mb-6">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                />
                 <button
                   type="button"
-                  className="w-24 h-24 rounded-full bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-24 h-24 rounded-full bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
                 >
-                  <Camera className="w-8 h-8 text-muted-foreground" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <Camera className="w-8 h-8 text-muted-foreground" />
+                  )}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                      <span className="text-xs font-bold">...</span>
+                    </div>
+                  )}
                 </button>
               </div>
 
@@ -190,6 +250,8 @@ export default function EditClientPage() {
                   className="input-field"
                 />
               </div>
+
+              <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} />
 
               <Button type="button" onClick={handleNext} className="w-full btn-primary mt-6">
                 Próximo

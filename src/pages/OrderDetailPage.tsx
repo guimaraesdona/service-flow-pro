@@ -158,10 +158,10 @@ export default function OrderDetailPage() {
               R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
-          {order.discount && order.discount > 0 && (
+          {(order.discount || 0) > 0 && (
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
               <p className="text-sm text-status-finished">Desconto</p>
-              <p className="text-sm font-bold text-status-finished">- R$ {order.discount.toFixed(2)}</p>
+              <p className="text-sm font-bold text-status-finished">- R$ {order.discount!.toFixed(2)}</p>
             </div>
           )}
         </div>

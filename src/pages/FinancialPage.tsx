@@ -14,45 +14,27 @@ import {
   CheckCircle,
   Plus,
   Calendar,
-  User
+  User,
+  Trash2
 } from "lucide-react";
 
-interface Payment {
-  id: string;
-  orderId: string;
-  clientName: string;
-  amount: number;
-  date: string;
-  type: "received" | "pending";
-}
-
-const mockPayments: Payment[] = [
-  { id: "1", orderId: "003", clientName: "Ana Oliveira", amount: 180.0, date: "2025-01-03", type: "received" },
-  { id: "2", orderId: "001", clientName: "Maria Silva", amount: 150.0, date: "2025-01-05", type: "pending" },
-  { id: "3", orderId: "002", clientName: "João Santos", amount: 600.0, date: "2025-01-04", type: "pending" },
-  { id: "4", orderId: "004", clientName: "Carlos Mendes", amount: 240.0, date: "2025-01-02", type: "received" },
-];
-
-const mockOrders = [
-  { id: "001", clientName: "Maria Silva", total: 150.0 },
-  { id: "002", clientName: "João Santos", total: 600.0 },
-  { id: "003", clientName: "Ana Oliveira", total: 180.0 },
-  { id: "004", clientName: "Carlos Mendes", total: 240.0 },
-  { id: "005", clientName: "Paula Costa", total: 350.0 },
-];
+import { useTransactions } from "@/hooks/useTransactions";
+import { useOrders } from "@/hooks/useOrders";
 
 export default function FinancialPage() {
-  const [payments, setPayments] = useState<Payment[]>(mockPayments);
+  const { transactions: payments, createTransaction, deleteTransaction } = useTransactions();
+  const { orders } = useOrders();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState("");
   const [amount, setAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const totalRevenue = payments.reduce((acc, p) => acc + p.amount, 0);
-  const receivedRevenue = payments.filter(p => p.type === "received").reduce((acc, p) => acc + p.amount, 0);
-  const pendingRevenue = payments.filter(p => p.type === "pending").reduce((acc, p) => acc + p.amount, 0);
+  const totalRevenue = payments?.reduce((acc, p) => acc + p.amount, 0) || 0;
+  const receivedRevenue = payments?.filter(p => p.type === "received").reduce((acc, p) => acc + p.amount, 0) || 0;
+  const pendingRevenue = payments?.filter(p => p.type === "pending").reduce((acc, p) => acc + p.amount, 0) || 0;
 
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     if (!selectedOrder || !amount || !paymentDate) {
       toast({
         title: "Campos obrigatórios",
@@ -62,28 +44,51 @@ export default function FinancialPage() {
       return;
     }
 
-    const order = mockOrders.find(o => o.id === selectedOrder);
+    const order = orders?.find(o => o.id === selectedOrder);
     if (!order) return;
 
-    const newPayment: Payment = {
-      id: Date.now().toString(),
-      orderId: selectedOrder,
-      clientName: order.clientName,
-      amount: parseFloat(amount),
-      date: paymentDate,
-      type: "received",
-    };
+    try {
+      await createTransaction.mutateAsync({
+        orderId: selectedOrder,
+        amount: parseFloat(amount),
+        date: paymentDate,
+        type: "received",
+      });
 
-    setPayments([newPayment, ...payments]);
-    setIsDialogOpen(false);
-    setSelectedOrder("");
-    setAmount("");
-    setPaymentDate("");
+      setIsDialogOpen(false);
+      setSelectedOrder("");
+      setAmount("");
+      setPaymentDate(new Date().toISOString().split("T")[0]);
 
-    toast({
-      title: "Pagamento registrado!",
-      description: `R$ ${parseFloat(amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} recebido.`,
-    });
+      toast({
+        title: "Pagamento registrado!",
+        description: `R$ ${parseFloat(amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} recebido.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao registrar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeletePayment = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este pagamento?")) return;
+
+    try {
+      await deleteTransaction.mutateAsync(id);
+      toast({
+        title: "Pagamento excluído",
+        description: "O pagamento foi removido com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -179,9 +184,9 @@ export default function FinancialPage() {
                           <SelectValue placeholder="Selecione uma ordem" />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockOrders.map((order) => (
+                          {orders?.map((order) => (
                             <SelectItem key={order.id} value={order.id}>
-                              #{order.id} - {order.clientName} (R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
+                              #{order.number || order.id.slice(0, 4)} - {order.clientName} (R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -208,8 +213,8 @@ export default function FinancialPage() {
                       />
                     </div>
 
-                    <Button onClick={handleAddPayment} className="w-full btn-primary">
-                      Confirmar Pagamento
+                    <Button onClick={handleAddPayment} className="w-full btn-primary" disabled={createTransaction.isPending}>
+                      {createTransaction.isPending ? "Salvando..." : "Confirmar Pagamento"}
                     </Button>
                   </div>
                 </DialogContent>
@@ -217,7 +222,7 @@ export default function FinancialPage() {
             </div>
 
             <div className="divide-y divide-border/50">
-              {payments.length === 0 ? (
+              {!payments || payments.length === 0 ? (
                 <div className="p-8 text-center">
                   <DollarSign className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="text-muted-foreground">Nenhum pagamento registrado</p>
@@ -234,7 +239,7 @@ export default function FinancialPage() {
                       <div>
                         <p className="text-sm font-medium text-foreground">{payment.clientName}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>Ordem #{payment.orderId}</span>
+                          <span>Ordem #{payment.orderId.slice(0, 8)}</span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -243,14 +248,26 @@ export default function FinancialPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${payment.type === "received" ? "text-status-finished" : "text-status-waiting"
-                        }`}>
-                        R$ {payment.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {payment.type === "received" ? "Recebido" : "Pendente"}
-                      </p>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className={`font-bold ${payment.type === "received" ? "text-status-finished" : "text-status-waiting"
+                          }`}>
+                          R$ {payment.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {payment.type === "received" ? "Recebido" : "Pendente"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeletePayment(payment.id)}
+                        disabled={deleteTransaction.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 ))

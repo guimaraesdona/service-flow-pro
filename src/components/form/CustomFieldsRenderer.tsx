@@ -8,10 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  CustomField, 
-  getStoredCustomFields 
-} from "@/components/settings/CustomFieldsSettings";
+import { CustomField } from "@/components/settings/CustomFieldsSettings";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 
 export interface CustomFieldValue {
   fieldId: string;
@@ -29,9 +27,9 @@ export function CustomFieldsRenderer({
   values,
   onValuesChange,
 }: CustomFieldsRendererProps) {
-  const fields = getStoredCustomFields(entityType);
+  const { fields, isLoading } = useCustomFieldDefinitions(entityType);
 
-  if (fields.length === 0) {
+  if (isLoading || fields.length === 0) {
     return null;
   }
 
@@ -139,7 +137,7 @@ export function CustomFieldsRenderer({
               {field.name}
               {field.required && <span className="text-destructive">*</span>}
             </Label>
-            {renderFieldInput(field)}
+            {renderFieldInput(field as any)}
           </div>
         ))}
       </div>

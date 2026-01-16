@@ -14,6 +14,8 @@ import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
 import { useOrders } from "@/hooks/useOrders";
 import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
+import { useStorage } from "@/hooks/useStorage";
+import { useRef } from "react";
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
   { value: "start", label: "Iniciar" },
@@ -34,6 +36,8 @@ export default function NewOrderPage() {
   const { createOrder } = useOrders();
   const { clients } = useClients();
   const { services: availableServices } = useServices();
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -46,6 +50,7 @@ export default function NewOrderPage() {
   const [discount, setDiscount] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+  const [imageUrl, setImageUrl] = useState<string>("");
 
   const selectedClientData = clients?.find(c => c.id === selectedClient);
 
@@ -71,6 +76,26 @@ export default function NewOrderPage() {
   const discountValue = parseFloat(discount) || 0;
   const total = Math.max(0, subtotal - discountValue);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = await uploadImage(file, "app-images");
+      if (url) {
+        setImageUrl(url);
+        toast({
+          title: "Imagem enviada",
+          description: "Imagem anexada com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao enviar imagem.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClient || services.length === 0) {
@@ -79,6 +104,11 @@ export default function NewOrderPage() {
     }
 
     try {
+      const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
+        ...acc,
+        [curr.fieldId]: curr.value
+      }), {});
+
       await createOrder.mutateAsync({
         clientId: selectedClient,
         status,
@@ -88,6 +118,8 @@ export default function NewOrderPage() {
         description: description + (observations ? `\n\nObs: ${observations}` : ""),
         scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
         services,
+        customFields: customFieldsObject,
+        imageUrl: imageUrl
       });
 
       toast({ title: "Ordem criada!", description: "Ordem de serviço cadastrada com sucesso." });
@@ -110,8 +142,28 @@ export default function NewOrderPage() {
         <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
           <div className="space-y-5">
             <div className="flex justify-center mb-6 lg:justify-start">
-              <button type="button" className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors">
-                <Camera className="w-8 h-8 text-muted-foreground" />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
+              >
+                {imageUrl ? (
+                  <img src={imageUrl} alt="Order" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                    <span className="text-xs font-bold">...</span>
+                  </div>
+                )}
               </button>
             </div>
 

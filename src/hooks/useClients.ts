@@ -25,7 +25,9 @@ export function useClients() {
         return (data || []).map(client => ({
             ...client,
             birthDate: client.birth_date, // Map snake_case to camelCase
-            addresses: client.addresses || []
+            addresses: client.addresses || [],
+            customFields: client.custom_fields || [],
+            avatar: client.avatar_url
         })) as Client[];
     };
 
@@ -47,6 +49,8 @@ export function useClients() {
                     phone: newClient.phone,
                     document: newClient.document,
                     birth_date: newClient.birthDate,
+                    custom_fields: newClient.customFields || [],
+                    avatar_url: newClient.avatar,
                 })
                 .select()
                 .single();
@@ -93,6 +97,8 @@ export function useClients() {
                     phone: data.phone,
                     document: data.document,
                     birth_date: data.birthDate,
+                    custom_fields: data.customFields,
+                    avatar_url: data.avatar,
                 })
                 .eq("id", id);
 

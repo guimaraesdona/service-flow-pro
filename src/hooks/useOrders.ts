@@ -39,7 +39,9 @@ export function useOrders() {
             description: order.description,
             scheduledAt: order.scheduled_at,
             discount: order.discount,
-            number: order.number
+            number: order.number,
+            customFields: order.custom_fields || {},
+            imageUrl: order.image_url
         })) as ServiceOrder[];
     };
 
@@ -63,6 +65,8 @@ export function useOrders() {
                     discount: newOrder.discount || 0,
                     description: newOrder.description,
                     scheduled_at: newOrder.scheduledAt,
+                    custom_fields: newOrder.customFields || {},
+                    image_url: newOrder.imageUrl,
                 })
                 .select()
                 .single();
@@ -105,6 +109,8 @@ export function useOrders() {
                     discount: data.discount,
                     description: data.description,
                     scheduled_at: data.scheduledAt,
+                    custom_fields: data.customFields || {},
+                    image_url: data.imageUrl,
                 })
                 .eq("id", id);
 
