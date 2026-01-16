@@ -112,7 +112,7 @@ export default function PrintOrderPage() {
       <div className="flex-1 flex justify-center p-4 bg-secondary/30 overflow-auto print:p-0 print:bg-white print:overflow-visible print:block dark:bg-black/20">
         <div className="w-full max-w-[800px] print:w-full print:max-w-none print:h-auto animate-fade-in print:animate-none">
           <div className="shadow-lg print:shadow-none bg-white min-h-[500px] print:min-h-0">
-            <ServiceOrderPrint ref={componentRef} order={order} logoUrl={profile?.avatar_url} />
+            <ServiceOrderPrint ref={componentRef} order={order} logoUrl={profile?.use_logo_for_print ? profile?.avatar_url : undefined} />
           </div>
 
           <div className="mt-8 text-center print:hidden pb-8">

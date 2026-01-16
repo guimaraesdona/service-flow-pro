@@ -62,3 +62,14 @@ export interface ServiceOrder {
     customFields?: Record<string, any>;
     imageUrl?: string;
 }
+
+export interface Profile {
+  id: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  document?: string;
+  avatar_url?: string;
+  use_logo_for_print?: boolean;
+  updated_at?: string;
+}

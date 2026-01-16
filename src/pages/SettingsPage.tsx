@@ -10,7 +10,6 @@ import { toast } from "@/hooks/use-toast";
 import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
 import { useTheme } from "@/components/theme-provider";
 import {
-  User,
   Mail,
   Phone,
   Building,
@@ -18,8 +17,8 @@ import {
   Sun,
   Save,
   LogOut,
-  Camera
 } from "lucide-react";
+import { ImageUploader } from "@/components/form/ImageUploader";
 import { useStorage } from "@/hooks/useStorage";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -29,9 +28,12 @@ export default function SettingsPage() {
   // Remove local isLoading state in favor of mutation status if desired, but keeping generally fine.
   const [isSaving, setIsSaving] = useState(false);
 
-  const { uploadImage, isUploading } = useStorage();
+  // Remove local isLoading state in favor of mutation status if desired, but keeping generally fine.
+
+
+  const { deleteImage } = useStorage();
   const { profile, updateProfile } = useProfile();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
@@ -40,7 +42,8 @@ export default function SettingsPage() {
     email: "",
     phone: "",
     document: "",
-    avatar_url: ""
+    avatar_url: "",
+    use_logo_for_print: true
   });
 
   // Load profile data when available
@@ -51,7 +54,8 @@ export default function SettingsPage() {
         email: profile.email || "",
         phone: profile.phone || "",
         document: profile.document || "",
-        avatar_url: profile.avatar_url || ""
+        avatar_url: profile.avatar_url || "",
+        use_logo_for_print: profile.use_logo_for_print ?? true
       });
     }
   }, [profile]);
@@ -64,34 +68,17 @@ export default function SettingsPage() {
     setUserData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  const handleImageChange = async (newUrl: string) => {
+    const currentUrl = userData.avatar_url;
+    // Check if we are replacing a transient image
+    if (currentUrl && currentUrl !== profile?.avatar_url && currentUrl !== newUrl) {
       try {
-        const url = await uploadImage(file, "app-images");
-        if (url) {
-          // Update local state immediately for preview
-          setUserData(prev => ({ ...prev, avatar_url: url }));
-
-          // Optionally save immediately or wait for Save button. 
-          // Let's force save the avatar immediately as it's a common pattern, 
-          // or just keep it in state until user clicks "Save".
-          // User asked why it's not saving, probably expecting Save button to do it.
-          // We will stick to the "Save" button pattern for consistency with other fields.
-
-          toast({
-            title: "Imagem carregada",
-            description: "Clique em Salvar para confirmar a alteração.",
-          });
-        }
+        await deleteImage(currentUrl);
       } catch (error) {
-        toast({
-          title: "Erro",
-          description: "Falha ao enviar imagem.",
-          variant: "destructive",
-        });
+        console.error("Failed to delete transient image:", error);
       }
     }
+    updateField("avatar_url", newUrl);
   };
 
   const handleSave = async () => {
@@ -103,7 +90,13 @@ export default function SettingsPage() {
         phone: userData.phone,
         document: userData.document,
         avatar_url: userData.avatar_url,
+        use_logo_for_print: userData.use_logo_for_print,
       });
+
+      // If avatar changed and there was an old one, delete the old one
+      if (profile?.avatar_url && profile.avatar_url !== userData.avatar_url) {
+        await deleteImage(profile.avatar_url);
+      }
 
       toast({
         title: "Configurações salvas!",
@@ -141,38 +134,25 @@ export default function SettingsPage() {
         <div className="card-elevated p-6 mb-6 animate-fade-in">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileSelect}
+              <ImageUploader
+                value={userData.avatar_url}
+                onChange={(url) => updateField("avatar_url", url)}
+                previewClassName="w-16 h-16"
               />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-primary/50 transition-colors relative"
-              >
-                {userData.avatar_url ? (
-                  <img src={userData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-8 h-8 text-primary" />
-                )}
-                {isUploading && (
-                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                    <span className="text-[10px] font-bold">...</span>
-                  </div>
-                )}
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
-              >
-                <Camera className="w-3 h-3" />
-              </button>
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{userData.name || "Sua Empresa"}</h2>
-              <p className="text-sm text-muted-foreground">{userData.email || "email@exemplo.com"}</p>
+              <div className="flex items-center gap-2 mt-1">
+                 <Switch
+                    id="use_logo"
+                    checked={userData.use_logo_for_print}
+                    onCheckedChange={(checked) => setUserData(prev => ({ ...prev, use_logo_for_print: checked }))}
+                    className="scale-75 origin-left"
+                  />
+                  <Label htmlFor="use_logo" className="text-xs text-muted-foreground cursor-pointer">
+                    Usar logo na impressão
+                  </Label>
+              </div>
             </div>
           </div>
 
@@ -269,7 +249,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSave}
             className="w-full lg:w-auto btn-primary"
-            disabled={isSaving || isUploading}
+            disabled={isSaving}
           >
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar Alterações"}

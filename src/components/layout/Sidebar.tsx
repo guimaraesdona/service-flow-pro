@@ -1,7 +1,8 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Users, Wrench, ClipboardList, LogOut, LayoutDashboard, DollarSign, Settings, FileText } from "lucide-react";
+import { Users, Wrench, ClipboardList, LogOut, LayoutDashboard, DollarSign, Settings, FileText, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppLogo } from "@/components/ui/app-logo";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -26,8 +27,9 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-60 min-h-screen bg-card border-r border-border/50 print:hidden">
       {/* Logo */}
-      <div className="p-6 border-b border-border/50">
-        <h1 className="text-xl font-bold text-foreground">OSApp</h1>
+      <div className="p-6 border-b border-border/50 flex items-center gap-3">
+        <AppLogo size="md" />
+        <h1 className="text-xl font-bold text-foreground">App</h1>
       </div>
 
       {/* Navigation */}
