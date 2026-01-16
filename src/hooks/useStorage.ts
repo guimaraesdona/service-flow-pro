@@ -36,8 +36,32 @@ export function useStorage() {
         }
     };
 
+    const deleteImage = async (url: string, bucket: string = "app-images") => {
+        try {
+            // Extract filename from URL (handle query params and encoding)
+            const cleanUrl = url.split('?')[0]; // Remove query params
+            const fileName = decodeURIComponent(cleanUrl.split('/').pop() || "");
+
+            if (!fileName) return;
+
+            const { error: deleteError } = await supabase.storage
+                .from(bucket)
+                .remove([fileName]);
+
+            if (deleteError) {
+                console.error("Supabase Storage Delete Error:", deleteError);
+                throw deleteError;
+            }
+        } catch (err: any) {
+            console.error("Delete Logic Error:", err);
+            setError(err.message);
+            throw err; // Add this line
+        }
+    };
+
     return {
         uploadImage,
+        deleteImage,
         isUploading,
         error,
     };

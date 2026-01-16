@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,14 @@ import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/Custom
 
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
+import { ImageUploader } from "@/components/form/ImageUploader";
 
 export default function EditServicePage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { services, updateService } = useServices();
-  const { uploadImage, isUploading } = useStorage();
+
+  const { deleteImage } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const service = services?.find(s => s.id === id);
@@ -65,26 +67,19 @@ export default function EditServicePage() {
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = await uploadImage(file, "app-images");
-      if (url) {
-        setImageUrl(url);
-        toast({
-          title: "Imagem enviada",
-          description: "Imagem atualizada com sucesso.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Falha ao enviar imagem.",
-          variant: "destructive",
-        });
+  const handleImageChange = async (newUrl: string) => {
+    // If there is a current image in state, and it is diverse from the one in DB (meaning it's a new upload),
+    // and we are replacing it or removing it, we should delete this transient file to avoid orphans.
+    if (imageUrl && imageUrl !== service?.imageUrl && imageUrl !== newUrl) {
+      try {
+        await deleteImage(imageUrl);
+      } catch (error) {
+        console.error("Failed to delete transient image:", error);
       }
     }
+    setImageUrl(newUrl);
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +111,17 @@ export default function EditServicePage() {
           imageUrl: imageUrl
         }
       });
+      // Delete old image if it changed
+      if (service?.imageUrl && service.imageUrl !== imageUrl) {
+        await deleteImage(service.imageUrl).catch((err) => {
+          console.error("Failed to delete old image:", err);
+          toast({
+            title: "Aviso",
+            description: "A imagem antiga não pôde ser removida do armazenamento, mas o registro foi atualizado.",
+            variant: "destructive"
+          });
+        });
+      }
 
       toast({
         title: "Serviço atualizado!",
@@ -139,29 +145,11 @@ export default function EditServicePage() {
         <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up">
           {/* Image */}
           <div className="flex justify-center mb-6">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileSelect}
+
+            <ImageUploader
+              value={imageUrl}
+              onChange={handleImageChange}
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-24 h-24 rounded-xl bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
-            >
-              {imageUrl ? (
-                <img src={imageUrl} alt="Service" className="w-full h-full object-cover" />
-              ) : (
-                <Camera className="w-8 h-8 text-muted-foreground" />
-              )}
-              {isUploading && (
-                <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                  <span className="text-xs font-bold">...</span>
-                </div>
-              )}
-            </button>
           </div>
 
           <div className="space-y-2">

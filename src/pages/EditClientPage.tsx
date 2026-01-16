@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { formatPhone, formatDocument } from "@/lib/formatters";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
-import { ArrowRight, Camera } from "lucide-react";
+import { ArrowRight, Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +12,16 @@ import { Client, Address } from "@/types";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 import { useClients } from "@/hooks/useClients";
+
 import { useStorage } from "@/hooks/useStorage";
+import { ImageUploader } from "@/components/form/ImageUploader";
 
 export default function EditClientPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { clients, updateClient } = useClients();
-  const { uploadImage, isUploading } = useStorage();
+
+  const { deleteImage } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const client = clients?.find(c => c.id === id);
@@ -76,25 +79,20 @@ export default function EditClientPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = await uploadImage(file, "app-images");
-      if (url) {
-        setAvatarUrl(url);
-        toast({
-          title: "Imagem enviada",
-          description: "Avatar atualizado com sucesso.",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Falha ao enviar imagem.",
-          variant: "destructive",
-        });
+  const handleImageChange = async (newUrl: string) => {
+    // If there is a current image in state, and it is diverse from the one in DB (meaning it's a new upload),
+    // and we are replacing it or removing it, we should delete this transient file to avoid orphans.
+    if (avatarUrl && avatarUrl !== client?.avatar && avatarUrl !== newUrl) {
+      try {
+        await deleteImage(avatarUrl);
+      } catch (error) {
+        console.error("Failed to delete transient image:", error);
       }
     }
+    setAvatarUrl(newUrl);
   };
+
+
 
   const handleNext = () => {
     if (!formData.name || !formData.email) {
@@ -133,6 +131,11 @@ export default function EditClientPage() {
         }
       });
 
+      // Delete old image if it changed
+      if (client?.avatar && client.avatar !== avatarUrl) {
+        await deleteImage(client.avatar);
+      }
+
       toast({
         title: "Cliente atualizado!",
         description: `${formData.name} foi atualizado com sucesso.`,
@@ -165,30 +168,12 @@ export default function EditClientPage() {
           {step === 1 && (
             <div className="space-y-4 animate-slide-up">
               {/* Avatar */}
+
               <div className="flex justify-center mb-6">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileSelect}
+                <ImageUploader
+                  value={avatarUrl}
+                  onChange={setAvatarUrl}
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-24 h-24 rounded-full bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors overflow-hidden relative"
-                >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <Camera className="w-8 h-8 text-muted-foreground" />
-                  )}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                      <span className="text-xs font-bold">...</span>
-                    </div>
-                  )}
-                </button>
               </div>
 
               <div className="space-y-2">
