@@ -169,7 +169,7 @@ export default function OrderDetailPage() {
         {/* Description/Observations */}
         {order.description && (
           <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.25s" }}>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Observações</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Descrição</h3>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                 <FileText className="w-4 h-4 text-muted-foreground" />

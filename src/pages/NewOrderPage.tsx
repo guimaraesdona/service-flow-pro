@@ -15,6 +15,7 @@ import { useOrders } from "@/hooks/useOrders";
 import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 import { useRef } from "react";
 import { ImageUploader } from "@/components/form/ImageUploader";
 
@@ -38,6 +39,7 @@ export default function NewOrderPage() {
   const { clients } = useClients();
   const { services: availableServices } = useServices();
   const { deleteImage } = useStorage();
+  const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("order");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedClient, setSelectedClient] = useState("");
@@ -49,9 +51,21 @@ export default function NewOrderPage() {
   const [description, setDescription] = useState("");
   const [observations, setObservations] = useState("");
   const [discount, setDiscount] = useState("");
+  const [discountType, setDiscountType] = useState<"fixed" | "percentage">("fixed");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string | any[]) => {
+    let error = "";
+    if (field === "selectedClient" && !value) error = "Selecione um cliente";
+    if (field === "services" && Array.isArray(value) && value.length === 0) error = "Adicione pelo menos um serviço";
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
 
   const handleImageChange = async (newUrl: string) => {
     if (imageUrl && imageUrl !== newUrl) {
@@ -84,24 +98,70 @@ export default function NewOrderPage() {
 
   const removeService = (serviceName: string) => { setServices(services.filter((s) => s.name !== serviceName)); };
 
+  const updatePrice = (serviceName: string, newPrice: number) => {
+    setServices(services.map((s) => s.name === serviceName ? { ...s, price: newPrice } : s));
+  };
+
   const subtotal = services.reduce((acc, s) => acc + s.price * s.quantity, 0);
-  const discountValue = parseFloat(discount) || 0;
+
+  const discountInput = parseFloat(discount) || 0;
+  const discountValue = discountType === "fixed"
+    ? discountInput
+    : subtotal * (discountInput / 100);
+
   const total = Math.max(0, subtotal - discountValue);
 
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClient || services.length === 0) {
-      toast({ title: "Campos obrigatórios", description: "Selecione um cliente e adicione pelo menos um serviço.", variant: "destructive" });
+
+    const isClientValid = validateField("selectedClient", selectedClient);
+    const isServicesValid = validateField("services", services);
+
+    if (!isClientValid || !isServicesValid) {
+      toast({
+        title: "Campos inválidos",
+        description: "Verifique os erros antes de continuar.",
+        variant: "destructive"
+      });
       return;
+    }
+
+    setCustomFieldErrors({});
+
+    // Validate Custom Fields
+    const missingFields = customFieldsDefinitions.filter(field => {
+        if (!field.required) return false;
+        const val = customFieldValues.find(v => v.fieldId === field.id)?.value;
+        if (val === undefined || val === "" || val === null) return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+    });
+
+    if (missingFields.length > 0) {
+        const newCustomErrors: Record<string, string> = {};
+        missingFields.forEach(f => {
+            newCustomErrors[f.id] = "Campo obrigatório";
+        });
+        setCustomFieldErrors(newCustomErrors);
+
+        toast({
+            title: "Campos obrigatórios",
+            description: `Preencha os campos: ${missingFields.map(f => f.name).join(", ")}`,
+            variant: "destructive"
+        });
+        return;
     }
 
     try {
       const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
         ...acc,
         [curr.fieldId]: curr.value
-      }), {});
+      }), {
+        _discountType: discountType, // Persist discount type metadata
+        _discountInput: discount // Persist raw discount input
+      });
 
       await createOrder.mutateAsync({
         clientId: selectedClient,
@@ -109,7 +169,8 @@ export default function NewOrderPage() {
         priority,
         total,
         discount: discountValue,
-        description: description + (observations ? `\n\nObs: ${observations}` : ""),
+        description: description,
+        observations: observations,
         scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
         services,
         customFields: customFieldsObject,
@@ -161,10 +222,20 @@ export default function NewOrderPage() {
 
             <div className="space-y-2">
               <Label>Cliente *</Label>
-              <Select value={selectedClient} onValueChange={(v) => { setSelectedClient(v); setSelectedAddress(""); }}>
-                <SelectTrigger className="input-field"><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+              <Select
+                value={selectedClient}
+                onValueChange={(v) => {
+                  setSelectedClient(v);
+                  setSelectedAddress("");
+                  if (errors.selectedClient) validateField("selectedClient", v);
+                }}
+              >
+                <SelectTrigger className={`input-field ${errors.selectedClient ? "border-red-500 focus:ring-red-500" : ""}`}>
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
                 <SelectContent>{clients?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
+              {errors.selectedClient && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.selectedClient}</p>}
             </div>
 
             {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
@@ -190,10 +261,16 @@ export default function NewOrderPage() {
 
             <div className="space-y-2">
               <Label>Adicionar Serviços *</Label>
-              <Select onValueChange={addService}>
-                <SelectTrigger className="input-field"><SelectValue placeholder="Selecione um serviço" /></SelectTrigger>
+              <Select onValueChange={(v) => {
+                  addService(v);
+                  if (errors.services) setErrors(prev => ({ ...prev, services: "" }));
+              }}>
+                <SelectTrigger className={`input-field ${errors.services ? "border-red-500 focus:ring-red-500" : ""}`}>
+                  <SelectValue placeholder="Selecione um serviço" />
+                </SelectTrigger>
                 <SelectContent>{availableServices?.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price.toFixed(2)}</SelectItem>)}</SelectContent>
               </Select>
+              {errors.services && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.services}</p>}
             </div>
 
             {services.length > 0 && (
@@ -204,7 +281,18 @@ export default function NewOrderPage() {
                     <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{s.name}</p>
-                        <p className="text-xs text-muted-foreground">R$ {s.price.toFixed(2)} x {s.quantity}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-7 w-24 text-xs bg-background/50 border-border/50"
+                            value={s.price}
+                            onChange={(e) => updatePrice(s.name, parseFloat(e.target.value) || 0)}
+                          />
+                          <span className="text-xs text-muted-foreground">x {s.quantity}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button type="button" onClick={() => updateQuantity(s.name, -1)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Minus className="w-4 h-4" /></button>
@@ -231,11 +319,29 @@ export default function NewOrderPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Desconto (R$)</Label>
-              <Input type="number" step="0.01" placeholder="0,00" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input-field" />
+              <Label>Desconto</Label>
+              <div className="flex gap-2">
+                <Select value={discountType} onValueChange={(v) => setDiscountType(v as "fixed" | "percentage")}>
+                   <SelectTrigger className="w-[110px] input-field">
+                    <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="fixed">R$ (Real)</SelectItem>
+                     <SelectItem value="percentage">% (Porc.)</SelectItem>
+                   </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="input-field flex-1"
+                />
+              </div>
             </div>
 
-            <CustomFieldsRenderer entityType="order" values={customFieldValues} onValuesChange={setCustomFieldValues} />
+            <CustomFieldsRenderer entityType="order" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
 
             <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
               <div className="flex justify-between text-sm">
@@ -244,8 +350,8 @@ export default function NewOrderPage() {
               </div>
               {discountValue > 0 && (
                 <div className="flex justify-between text-sm text-status-finished">
-                  <span>Desconto</span>
-                  <span>- R$ {discountValue.toFixed(2)}</span>
+                  <span>Desconto {discountType === "percentage" && `(${discount}%)`}</span>
+                  <span>- R$ {discountValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t border-primary/20">

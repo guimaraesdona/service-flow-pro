@@ -56,6 +56,7 @@ export interface ServiceOrder {
     status: OrderStatus;
     priority: OrderPriority;
     description?: string;
+    observations?: string;
     scheduledAt?: string;
     discount?: number;
     number?: string;
@@ -71,5 +72,27 @@ export interface Profile {
   document?: string;
   avatar_url?: string;
   use_logo_for_print?: boolean;
+
+  // Additional fields
+  birth_date?: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+
   updated_at?: string;
+}
+
+export type TransactionType = "received" | "pending";
+
+export interface Transaction {
+    id: string;
+    orderId: string;
+    clientName: string;
+    amount: number;
+    date: string;
+    type: TransactionType;
 }

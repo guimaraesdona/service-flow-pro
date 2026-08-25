@@ -12,6 +12,7 @@ import { Client, Address } from "@/types";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 
 import { useClients } from "@/hooks/useClients";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 
 import { useStorage } from "@/hooks/useStorage";
 import { ImageUploader } from "@/components/form/ImageUploader";
@@ -20,6 +21,7 @@ export default function EditClientPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { clients, updateClient } = useClients();
+  const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("client");
 
   const { deleteImage } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +41,7 @@ export default function EditClientPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (client) {
@@ -110,6 +113,32 @@ export default function EditClientPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
+    setCustomFieldErrors({});
+
+    // Validate Custom Fields
+    const missingFields = customFieldsDefinitions.filter(field => {
+        if (!field.required) return false;
+        const val = customFieldValues.find(v => v.fieldId === field.id)?.value;
+        if (val === undefined || val === "" || val === null) return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+    });
+
+    if (missingFields.length > 0) {
+        const newCustomErrors: Record<string, string> = {};
+        missingFields.forEach(f => {
+            newCustomErrors[f.id] = "Campo obrigatório";
+        });
+        setCustomFieldErrors(newCustomErrors);
+
+        toast({
+            title: "Campos obrigatórios",
+            description: `Preencha os campos: ${missingFields.map(f => f.name).join(", ")}`,
+            variant: "destructive"
+        });
+        return;
+    }
 
     try {
       const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
@@ -213,7 +242,7 @@ export default function EditClientPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="birthDate">Data Nasc.</Label>
+                  <Label htmlFor="birthDate">Data Nasc. / Abertura *</Label>
                   <Input
                     id="birthDate"
                     type="date"
@@ -236,7 +265,7 @@ export default function EditClientPage() {
                 />
               </div>
 
-              <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} />
+              <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
 
               <Button type="button" onClick={handleNext} className="w-full btn-primary mt-6">
                 Próximo

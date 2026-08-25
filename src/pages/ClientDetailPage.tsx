@@ -96,7 +96,7 @@ export default function ClientDetailPage() {
                 <Calendar className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Data de Nascimento</p>
+                <p className="text-xs text-muted-foreground">Data Nasc. / Abertura</p>
                 <p className="text-sm text-foreground">{formatDate(client.birthDate)}</p>
               </div>
             </div>

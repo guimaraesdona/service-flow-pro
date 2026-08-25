@@ -11,10 +11,13 @@ import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/Custom
 import { AddressManager } from "@/components/client/AddressManager";
 import { Address } from "@/types";
 import { formatDocument, formatPhone } from "@/lib/formatters";
+import { maskPhone, maskDocument } from "@/utils/masks";
+import { validateEmail, validateDocument } from "@/utils/validations";
 
 import { useClients } from "@/hooks/useClients";
 import { useStorage } from "@/hooks/useStorage";
 import { ImageUploader } from "@/components/form/ImageUploader";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 
 export default function NewClientPage() {
   const navigate = useNavigate();
@@ -26,6 +29,7 @@ export default function NewClientPage() {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("client");
 
   const handleImageChange = async (newUrl: string) => {
     if (avatarUrl && avatarUrl !== newUrl) {
@@ -46,23 +50,91 @@ export default function NewClientPage() {
     phone: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+
+    // Mandatory fields
+    if (!value && ["name", "email", "document", "birthDate", "phone"].includes(field)) {
+      error = "Campo obrigatório";
+    }
+
+    if (!error) {
+      if (field === "email" && value && !validateEmail(value)) {
+        error = "Email inválido";
+      }
+      if (field === "document" && value) {
+        if (!validateDocument(value)) {
+          error = "CPF/CNPJ inválido";
+        }
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string) => {
+    validateField(field, formData[field as keyof typeof formData]);
+  };
+
   const updateField = (field: string, value: string) => {
+    let newValue = value;
     if (field === "document") {
-      setFormData((prev) => ({ ...prev, [field]: formatDocument(value) }));
+      newValue = maskDocument(value);
     } else if (field === "phone") {
-      setFormData((prev) => ({ ...prev, [field]: formatPhone(value) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+      newValue = maskPhone(value);
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: newValue }));
+
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
 
 
   const handleNext = () => {
-    if (!formData.name || !formData.email) {
+    // Validate all fields for step 1
+    const fieldsToValidate = ["name", "email", "document", "birthDate", "phone"];
+    let hasErrors = false;
+
+    fieldsToValidate.forEach(field => {
+      const isValid = validateField(field, formData[field as keyof typeof formData]);
+      if (!isValid) hasErrors = true;
+    });
+
+    setCustomFieldErrors({});
+
+    // Validate Custom Fields
+    const missingFields = customFieldsDefinitions.filter(field => {
+        if (!field.required) return false;
+        const val = customFieldValues.find(v => v.fieldId === field.id)?.value;
+        if (val === undefined || val === "" || val === null) return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+    });
+
+    if (missingFields.length > 0) {
+        const newCustomErrors: Record<string, string> = {};
+        missingFields.forEach(f => {
+            newCustomErrors[f.id] = "Campo obrigatório";
+        });
+        setCustomFieldErrors(newCustomErrors);
+        hasErrors = true;
+    }
+
+    if (hasErrors) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Nome e email são obrigatórios.",
+        title: "Campos inválidos",
+        description: "Por favor, corrija os erros destacados antes de prosseguir.",
         variant: "destructive",
       });
       return;
@@ -135,33 +207,87 @@ export default function NewClientPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome / Razão Social *</Label>
-                  <Input id="name" placeholder="Nome completo" value={formData.name} onChange={(e) => updateField("name", e.target.value)} className="input-field" required />
+                  <div className="space-y-1">
+                    <Input
+                      id="name"
+                      placeholder="Nome completo"
+                      value={formData.name}
+                      onChange={(e) => updateField("name", e.target.value)}
+                      onBlur={() => handleBlur("name")}
+                      className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
-                  <Input id="email" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={(e) => updateField("email", e.target.value)} className="input-field" required />
+                  <div className="space-y-1">
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={formData.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                      onBlur={() => handleBlur("email")}
+                      className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="document">CPF / CNPJ</Label>
-                    <Input id="document" placeholder="000.000.000-00" value={formData.document} onChange={(e) => updateField("document", e.target.value)} className="input-field" />
+                    <Label htmlFor="document">CPF / CNPJ *</Label>
+                    <div className="space-y-1">
+                      <Input
+                        id="document"
+                        placeholder="000.000.000-00"
+                        value={formData.document}
+                        onChange={(e) => updateField("document", e.target.value)}
+                        onBlur={() => handleBlur("document")}
+                        className={`input-field ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                        maxLength={18}
+                      />
+                      {errors.document && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.document}</p>}
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="birthDate">Data Nasc.</Label>
-                    <Input id="birthDate" type="date" value={formData.birthDate} onChange={(e) => updateField("birthDate", e.target.value)} className="input-field" />
+                    <Label htmlFor="birthDate">Data Nasc. / Abertura *</Label>
+                    <div className="space-y-1">
+                      <Input
+                        id="birthDate"
+                        type="date"
+                        value={formData.birthDate}
+                        onChange={(e) => updateField("birthDate", e.target.value)}
+                        onBlur={() => handleBlur("birthDate")}
+                        className={`input-field ${errors.birthDate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      />
+                      {errors.birthDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.birthDate}</p>}
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" type="tel" placeholder="(00) 00000-0000" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className="input-field" />
+                  <Label htmlFor="phone">Telefone *</Label>
+                  <div className="space-y-1">
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(00) 00000-0000"
+                      value={formData.phone}
+                      onChange={(e) => updateField("phone", e.target.value)}
+                      onBlur={() => handleBlur("phone")}
+                      className={`input-field ${errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      maxLength={15}
+                    />
+                    {errors.phone && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.phone}</p>}
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-4 animate-slide-up mt-4 lg:mt-0">
-                <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} />
+                <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
                 <Button type="button" onClick={handleNext} className="w-full btn-primary mt-6">
                   Próximo <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

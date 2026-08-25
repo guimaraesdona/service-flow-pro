@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { maskPhone, maskDocument, maskCEP } from "@/utils/masks";
+import { validateEmail, validateDocument } from "@/utils/validations";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -32,24 +34,63 @@ export default function RegisterPage() {
     state: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+
+    // Optional fields
+    const optionalFields = ["complement", "avatar_url"];
+
+    if (!value && !optionalFields.includes(field)) {
+       error = "Campo obrigatório";
+    }
+
+    if (!error) {
+        if (field === "email" && !validateEmail(value)) {
+            error = "Email inválido";
+        }
+        if (field === "document" && value && !validateDocument(value)) {
+            error = "CPF/CNPJ inválido";
+        }
+        if (field === "confirmPassword" && value !== formData.password) {
+            error = "As senhas não coincidem";
+        }
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string) => {
+    validateField(field, formData[field as keyof typeof formData] as string);
+  };
+
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleNext = () => {
     if (step === 1) {
-      if (!formData.name || !formData.email || !formData.password) {
+       const fieldsToValidate = ["name", "email", "password", "confirmPassword", "document", "phone"];
+       let hasErrors = false;
+
+       fieldsToValidate.forEach(field => {
+         const isValid = validateField(field, formData[field as keyof typeof formData]);
+         if (!isValid) hasErrors = true;
+       });
+
+      if (hasErrors) {
         toast({
-          title: "Campos obrigatórios",
-          description: "Preencha todos os campos para continuar.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Senhas diferentes",
-          description: "As senhas não coincidem.",
+          title: "Campos inválidos",
+          description: "Por favor, corrija os erros antes de continuar.",
           variant: "destructive",
         });
         return;
@@ -67,6 +108,24 @@ export default function RegisterPage() {
         variant: "destructive",
       });
       return;
+    }
+
+    // Validate step 2 fields
+    const fieldsToValidate = ["cep", "street", "number", "neighborhood", "city", "state"];
+    let hasErrors = false;
+
+    fieldsToValidate.forEach(field => {
+         const isValid = validateField(field, formData[field as keyof typeof formData]);
+         if (!isValid) hasErrors = true;
+    });
+
+    if (hasErrors) {
+        toast({
+          title: "Campos inválidos",
+          description: "Por favor, corrija os erros antes de finalizar.",
+          variant: "destructive",
+        });
+        return;
     }
 
     setIsLoading(true);
@@ -140,9 +199,10 @@ export default function RegisterPage() {
                   placeholder="Seu nome completo"
                   value={formData.name}
                   onChange={(e) => updateField("name", e.target.value)}
-                  className="input-field"
-                  required
+                  onBlur={() => handleBlur("name")}
+                  className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
+                {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -153,9 +213,10 @@ export default function RegisterPage() {
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
-                  className="input-field"
-                  required
+                  onBlur={() => handleBlur("email")}
+                  className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
+                {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -165,9 +226,12 @@ export default function RegisterPage() {
                     id="document"
                     placeholder="000.000.000-00"
                     value={formData.document}
-                    onChange={(e) => updateField("document", e.target.value)}
-                    className="input-field"
+                    onChange={(e) => updateField("document", maskDocument(e.target.value))}
+                    onBlur={() => handleBlur("document")}
+                    className={`input-field ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    maxLength={18}
                   />
+                  {errors.document && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.document}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="birthDate">Data Nasc. / Abertura</Label>
@@ -176,8 +240,10 @@ export default function RegisterPage() {
                     type="date"
                     value={formData.birthDate}
                     onChange={(e) => updateField("birthDate", e.target.value)}
-                    className="input-field"
+                    onBlur={() => handleBlur("birthDate")}
+                    className={`input-field ${errors.birthDate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   />
+                  {errors.birthDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.birthDate}</p>}
                 </div>
               </div>
 
@@ -188,9 +254,12 @@ export default function RegisterPage() {
                   type="tel"
                   placeholder="(00) 00000-0000"
                   value={formData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                  className="input-field"
+                  onChange={(e) => updateField("phone", maskPhone(e.target.value))}
+                  onBlur={() => handleBlur("phone")}
+                  className={`input-field ${errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  maxLength={15}
                 />
+                {errors.phone && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.phone}</p>}
               </div>
 
               <div className="space-y-2">

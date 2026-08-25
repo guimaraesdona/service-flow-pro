@@ -12,6 +12,7 @@ import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/Custom
 
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 import { ImageUploader } from "@/components/form/ImageUploader";
 
 export default function NewServicePage() {
@@ -21,6 +22,7 @@ export default function NewServicePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
+  const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("service");
 
   const handleImageChange = async (newUrl: string) => {
     if (imageUrl && imageUrl !== newUrl) {
@@ -41,6 +43,35 @@ export default function NewServicePage() {
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (field !== "description" && !value) {
+      error = "Campo obrigatório";
+    }
+    if (field === "price" && value) {
+      const price = parseFloat(value);
+      if (isNaN(price) || price < 0) {
+        error = "Valor não pode ser negativo";
+      }
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string) => {
+    validateField(field, formData[field as keyof typeof formData] as string);
   };
 
 
@@ -48,10 +79,38 @@ export default function NewServicePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.price) {
+    const fieldsToValidate = ["name", "price"];
+    let hasErrors = false;
+
+    fieldsToValidate.forEach(field => {
+        const isValid = validateField(field, formData[field as keyof typeof formData]);
+        if (!isValid) hasErrors = true;
+    });
+
+    setCustomFieldErrors({});
+
+    // Validate Custom Fields
+    const missingFields = customFieldsDefinitions.filter(field => {
+        if (!field.required) return false;
+        const val = customFieldValues.find(v => v.fieldId === field.id)?.value;
+        if (val === undefined || val === "" || val === null) return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+    });
+
+    if (missingFields.length > 0) {
+        const newCustomErrors: Record<string, string> = {};
+        missingFields.forEach(f => {
+            newCustomErrors[f.id] = "Campo obrigatório";
+        });
+        setCustomFieldErrors(newCustomErrors);
+        hasErrors = true;
+    }
+
+    if (hasErrors) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Nome e valor são obrigatórios.",
+        title: "Campos inválidos",
+        description: "Por favor, corrija os erros destacados.",
         variant: "destructive",
       });
       return;
@@ -117,9 +176,11 @@ export default function NewServicePage() {
                 placeholder="Ex: Manutenção Preventiva"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
-                className="input-field"
+                onBlur={() => handleBlur("name")}
+                className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 required
               />
+              {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -142,9 +203,11 @@ export default function NewServicePage() {
                 placeholder="0,00"
                 value={formData.price}
                 onChange={(e) => updateField("price", e.target.value)}
-                className="input-field"
+                onBlur={() => handleBlur("price")}
+                className={`input-field ${errors.price ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 required
               />
+               {errors.price && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.price}</p>}
             </div>
           </div>
 
@@ -155,6 +218,7 @@ export default function NewServicePage() {
               entityType="service"
               values={customFieldValues}
               onValuesChange={setCustomFieldValues}
+              errors={customFieldErrors}
             />
 
             <Button
