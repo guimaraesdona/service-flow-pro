@@ -34,11 +34,36 @@ export default function FinancialPage() {
   const receivedRevenue = payments?.filter(p => p.type === "received").reduce((acc, p) => acc + p.amount, 0) || 0;
   const pendingRevenue = payments?.filter(p => p.type === "pending").reduce((acc, p) => acc + p.amount, 0) || 0;
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (!value) {
+      error = "Campo obrigatório";
+    }
+    if (field === "amount" && value) {
+      const val = parseFloat(value);
+      if (isNaN(val) || val <= 0) {
+        error = "Valor deve ser maior que zero";
+      }
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string, value: string) => {
+    validateField(field, value);
+  };
+
   const handleAddPayment = async () => {
-    if (!selectedOrder || !amount || !paymentDate) {
+    const isOrderValid = validateField("selectedOrder", selectedOrder);
+    const isAmountValid = validateField("amount", amount);
+    const isDateValid = validateField("paymentDate", paymentDate);
+
+    if (!isOrderValid || !isAmountValid || !isDateValid) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos.",
+        title: "Campos inválidos",
+        description: "Por favor, preencha todos os campos corretamente.",
         variant: "destructive",
       });
       return;
@@ -179,8 +204,14 @@ export default function FinancialPage() {
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Ordem de Serviço</Label>
-                      <Select value={selectedOrder} onValueChange={setSelectedOrder}>
-                        <SelectTrigger>
+                      <Select
+                        value={selectedOrder}
+                        onValueChange={(val) => {
+                          setSelectedOrder(val);
+                          if (errors.selectedOrder) validateField("selectedOrder", val);
+                        }}
+                      >
+                        <SelectTrigger className={errors.selectedOrder ? "border-red-500 focus:ring-red-500" : ""}>
                           <SelectValue placeholder="Selecione uma ordem" />
                         </SelectTrigger>
                         <SelectContent>
@@ -191,6 +222,7 @@ export default function FinancialPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.selectedOrder && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.selectedOrder}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -200,8 +232,14 @@ export default function FinancialPage() {
                         step="0.01"
                         placeholder="0,00"
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        onChange={(e) => {
+                            setAmount(e.target.value);
+                            if (errors.amount) validateField("amount", e.target.value);
+                        }}
+                        onBlur={() => handleBlur("amount", amount)}
+                        className={errors.amount ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {errors.amount && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.amount}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -209,8 +247,14 @@ export default function FinancialPage() {
                       <Input
                         type="date"
                         value={paymentDate}
-                        onChange={(e) => setPaymentDate(e.target.value)}
+                        onChange={(e) => {
+                            setPaymentDate(e.target.value);
+                            if (errors.paymentDate) validateField("paymentDate", e.target.value);
+                        }}
+                        onBlur={() => handleBlur("paymentDate", paymentDate)}
+                        className={errors.paymentDate ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {errors.paymentDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.paymentDate}</p>}
                     </div>
 
                     <Button onClick={handleAddPayment} className="w-full btn-primary" disabled={createTransaction.isPending}>

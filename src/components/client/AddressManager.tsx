@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatCEP } from "@/lib/formatters";
+import { maskCEP } from "@/utils/masks";
 
 import { Address } from "@/types";
 
@@ -28,6 +29,23 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
     isDefault: false,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    // Mandatory fields
+    if (!value && ["label", "cep", "street", "number", "neighborhood", "city", "state"].includes(field)) {
+      error = "Campo obrigatório";
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string) => {
+    validateField(field, formData[field as keyof typeof formData] as string);
+  };
+
   const resetForm = () => {
     setFormData({
       label: "",
@@ -40,6 +58,7 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
       state: "",
       isDefault: false,
     });
+    setErrors({});
     setEditingAddress(null);
   };
 
@@ -69,9 +88,16 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
   };
 
   const handleSaveAddress = () => {
-    if (!formData.label || !formData.cep || !formData.street || !formData.city || !formData.state) {
-      return;
-    }
+    // Validate all mandatory fields
+    const fieldsToValidate = ["label", "cep", "street", "number", "neighborhood", "city", "state"];
+    let hasErrors = false;
+
+    fieldsToValidate.forEach(field => {
+      const isValid = validateField(field, formData[field as keyof typeof formData] as string);
+      if (!isValid) hasErrors = true;
+    });
+
+    if (hasErrors) return;
 
     if (editingAddress) {
       const updatedAddresses = addresses.map((addr) =>
@@ -118,9 +144,17 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
 
   const updateField = (field: keyof Omit<Address, 'id'>, value: string | boolean) => {
     if (field === 'cep' && typeof value === 'string') {
-      setFormData((prev) => ({ ...prev, [field]: formatCEP(value) }));
+      setFormData((prev) => ({ ...prev, [field]: maskCEP(value) }));
     } else {
       setFormData((prev) => ({ ...prev, [field]: value }));
+    }
+
+    if (typeof value === 'string' && errors[field]) {
+       setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
@@ -149,43 +183,60 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label>Identificação *</Label>
-                <Input
-                  placeholder="Ex: Casa, Trabalho, Escritório..."
-                  value={formData.label}
-                  onChange={(e) => updateField("label", e.target.value)}
-                  className="input-field"
-                />
+                <div className="space-y-1">
+                  <Input
+                    placeholder="Ex: Casa, Trabalho, Escritório..."
+                    value={formData.label}
+                    onChange={(e) => updateField("label", e.target.value)}
+                    onBlur={() => handleBlur("label")}
+                    className={`input-field ${errors.label ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  />
+                  {errors.label && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.label}</p>}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>CEP *</Label>
-                  <Input
-                    placeholder="00000-000"
-                    value={formData.cep}
-                    onChange={(e) => updateField("cep", e.target.value)}
-                    className="input-field"
-                  />
+                  <div className="space-y-1">
+                    <Input
+                      placeholder="00000-000"
+                      value={formData.cep}
+                      onChange={(e) => updateField("cep", e.target.value)}
+                      onBlur={() => handleBlur("cep")}
+                      className={`input-field ${errors.cep ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      maxLength={9}
+                    />
+                    {errors.cep && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.cep}</p>}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Número *</Label>
-                  <Input
-                    placeholder="000"
-                    value={formData.number}
-                    onChange={(e) => updateField("number", e.target.value)}
-                    className="input-field"
-                  />
+                  <div className="space-y-1">
+                    <Input
+                      placeholder="000"
+                      value={formData.number}
+                      onChange={(e) => updateField("number", e.target.value)}
+                      onBlur={() => handleBlur("number")}
+                      className={`input-field ${errors.number ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    {errors.number && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.number}</p>}
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>Logradouro *</Label>
-                <Input
-                  placeholder="Rua, Avenida..."
-                  value={formData.street}
-                  onChange={(e) => updateField("street", e.target.value)}
-                  className="input-field"
-                />
+                <div className="space-y-1">
+                  <Input
+                    placeholder="Rua, Avenida..."
+                    value={formData.street}
+                    onChange={(e) => updateField("street", e.target.value)}
+                    onBlur={() => handleBlur("street")}
+                    className={`input-field ${errors.street ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  />
+                  {errors.street && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.street}</p>}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -200,33 +251,45 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
 
               <div className="space-y-2">
                 <Label>Bairro *</Label>
-                <Input
-                  placeholder="Seu bairro"
-                  value={formData.neighborhood}
-                  onChange={(e) => updateField("neighborhood", e.target.value)}
-                  className="input-field"
-                />
+                <div className="space-y-1">
+                  <Input
+                    placeholder="Seu bairro"
+                    value={formData.neighborhood}
+                    onChange={(e) => updateField("neighborhood", e.target.value)}
+                    onBlur={() => handleBlur("neighborhood")}
+                    className={`input-field ${errors.neighborhood ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  />
+                  {errors.neighborhood && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.neighborhood}</p>}
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2 space-y-2">
                   <Label>Cidade *</Label>
-                  <Input
-                    placeholder="Sua cidade"
-                    value={formData.city}
-                    onChange={(e) => updateField("city", e.target.value)}
-                    className="input-field"
-                  />
+                  <div className="space-y-1">
+                    <Input
+                      placeholder="Sua cidade"
+                      value={formData.city}
+                      onChange={(e) => updateField("city", e.target.value)}
+                      onBlur={() => handleBlur("city")}
+                      className={`input-field ${errors.city ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    {errors.city && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.city}</p>}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>UF *</Label>
-                  <Input
-                    placeholder="UF"
-                    maxLength={2}
-                    value={formData.state}
-                    onChange={(e) => updateField("state", e.target.value.toUpperCase())}
-                    className="input-field"
-                  />
+                  <div className="space-y-1">
+                    <Input
+                      placeholder="UF"
+                      maxLength={2}
+                      value={formData.state}
+                      onChange={(e) => updateField("state", e.target.value.toUpperCase())}
+                      onBlur={() => handleBlur("state")}
+                      className={`input-field ${errors.state ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    {errors.state && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.state}</p>}
+                  </div>
                 </div>
               </div>
 

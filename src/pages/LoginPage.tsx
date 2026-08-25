@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { AppLogo } from "@/components/ui/app-logo";
+import { validateEmail } from "@/utils/validations";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -15,9 +16,41 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (field === "email") {
+      if (!value) error = "Campo obrigatório";
+      else if (!validateEmail(value)) error = "Email inválido";
+    }
+    if (field === "password" && !value) {
+      error = "Campo obrigatório";
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleBlur = (field: string, value: string) => {
+    validateField(field, value);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const isEmailValid = validateField("email", email);
+    const isPasswordValid = validateField("password", password);
+
+    if (!isEmailValid || !isPasswordValid) {
+       toast({
+        title: "Campos inválidos",
+        description: "Verifique os erros antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -67,10 +100,15 @@ export default function LoginPage() {
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) validateField("email", e.target.value);
+                }}
+                onBlur={() => handleBlur("email", email)}
+                className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 required
               />
+              {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -81,8 +119,12 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pr-10"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) validateField("password", e.target.value);
+                  }}
+                  onBlur={() => handleBlur("password", password)}
+                  className={`input-field pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   required
                 />
                 <button
@@ -93,6 +135,7 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.password && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.password}</p>}
             </div>
 
             <div className="text-right">

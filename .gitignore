@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Lockfiles de outros gerenciadores (o projeto usa pnpm)
+package-lock.json
+yarn.lock
+bun.lockb

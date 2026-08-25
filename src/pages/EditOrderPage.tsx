@@ -14,6 +14,7 @@ import { useOrders } from "@/hooks/useOrders";
 import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 import { useRef } from "react";
 import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
 import { ImageUploader } from "@/components/form/ImageUploader";
@@ -39,6 +40,7 @@ export default function EditOrderPage() {
   const { clients } = useClients();
   const { services: availableServices } = useServices();
   const { deleteImage } = useStorage();
+  const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("order");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const order = orders?.find(o => o.id === id);
@@ -48,12 +50,25 @@ export default function EditOrderPage() {
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [description, setDescription] = useState("");
+  const [observations, setObservations] = useState("");
   const [status, setStatus] = useState<OrderStatus>("start");
   const [priority, setPriority] = useState<OrderPriority>("normal");
   const [discount, setDiscount] = useState("");
+  const [discountType, setDiscountType] = useState<"fixed" | "percentage">("fixed");
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string | any[]) => {
+    let error = "";
+    if (field === "selectedClient" && !value) error = "Selecione um cliente";
+    if (field === "services" && Array.isArray(value) && value.length === 0) error = "Adicione pelo menos um serviço";
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
+  };
 
   const handleImageChange = async (newUrl: string) => {
     if (imageUrl && imageUrl !== order?.imageUrl && imageUrl !== newUrl) {
@@ -74,6 +89,7 @@ export default function EditOrderPage() {
         setScheduledTime(order.scheduledAt.split("T")[1]?.substring(0, 5) || "");
       }
       setDescription(order.description || "");
+      setObservations(order.observations || "");
       setStatus(order.status);
       setPriority(order.priority);
       setDiscount(order.discount ? order.discount.toString() : "");
@@ -81,10 +97,21 @@ export default function EditOrderPage() {
       setImageUrl(order.imageUrl || "");
 
       if (order.customFields) {
-        const values: CustomFieldValue[] = Object.entries(order.customFields).map(([key, value]) => ({
-          fieldId: key,
-          value: value as string | number | boolean
-        }));
+        // Extract internal metadata
+        if (order.customFields._discountType) {
+           setDiscountType(order.customFields._discountType as "fixed" | "percentage");
+        }
+        if (order.customFields._discountInput) {
+           setDiscount(order.customFields._discountInput.toString());
+        }
+
+        // Filter out internal metadata from the form fields
+        const values: CustomFieldValue[] = Object.entries(order.customFields)
+          .filter(([key]) => !key.startsWith("_"))
+          .map(([key, value]) => ({
+            fieldId: key,
+            value: value as string | number | boolean
+          }));
         setCustomFieldValues(values);
       }
     }
@@ -108,6 +135,8 @@ export default function EditOrderPage() {
   const addService = (serviceId: string) => {
     const service = availableServices?.find((s) => s.id === serviceId);
     if (!service) return;
+
+    if (errors.services) setErrors(prev => ({ ...prev, services: "" }));
 
     const existing = services.find((s) => s.name === service.name);
     if (existing) {
@@ -135,8 +164,17 @@ export default function EditOrderPage() {
     setServices(services.filter((s) => s.name !== serviceName));
   };
 
+  const updatePrice = (serviceName: string, newPrice: number) => {
+    setServices(services.map((s) => s.name === serviceName ? { ...s, price: newPrice } : s));
+  };
+
   const subtotal = services.reduce((acc, s) => acc + s.price * s.quantity, 0);
-  const discountValue = parseFloat(discount) || 0;
+
+  const discountInput = parseFloat(discount) || 0;
+  const discountValue = discountType === "fixed"
+    ? discountInput
+    : subtotal * (discountInput / 100);
+
   const total = Math.max(0, subtotal - discountValue);
 
 
@@ -144,13 +182,42 @@ export default function EditOrderPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedClient || services.length === 0) {
+    const isClientValid = validateField("selectedClient", selectedClient);
+    const isServicesValid = validateField("services", services);
+
+    if (!isClientValid || !isServicesValid) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Selecione um cliente e adicione pelo menos um serviço.",
-        variant: "destructive",
+        title: "Campos inválidos",
+        description: "Verifique os erros antes de continuar.",
+        variant: "destructive"
       });
       return;
+    }
+
+    setCustomFieldErrors({}); // Reset errors
+
+    // Validate Custom Fields
+    const missingFields = customFieldsDefinitions.filter(field => {
+        if (!field.required) return false;
+        const val = customFieldValues.find(v => v.fieldId === field.id)?.value;
+        if (val === undefined || val === "" || val === null) return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        return false;
+    });
+
+    if (missingFields.length > 0) {
+        const newCustomErrors: Record<string, string> = {};
+        missingFields.forEach(f => {
+            newCustomErrors[f.id] = "Campo obrigatório";
+        });
+        setCustomFieldErrors(newCustomErrors);
+
+        toast({
+            title: "Campos obrigatórios",
+            description: `Preencha os campos: ${missingFields.map(f => f.name).join(", ")}`,
+            variant: "destructive"
+        });
+        return;
     }
 
     if (!id) return;
@@ -159,7 +226,10 @@ export default function EditOrderPage() {
       const customFieldsObject = customFieldValues.reduce((acc, curr) => ({
         ...acc,
         [curr.fieldId]: curr.value
-      }), {});
+      }), {
+        _discountType: discountType, // Persist discount type metadata
+        _discountInput: discount // Persist raw discount input
+      });
 
       await updateOrder.mutateAsync({
         id,
@@ -170,6 +240,7 @@ export default function EditOrderPage() {
           total,
           discount: discountValue,
           description,
+          observations,
           scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
           services,
           customFields: customFieldsObject,
@@ -257,8 +328,15 @@ export default function EditOrderPage() {
             {/* Client */}
             <div className="space-y-2">
               <Label>Cliente *</Label>
-              <Select value={selectedClient} onValueChange={(v) => { setSelectedClient(v); setSelectedAddress(""); }}>
-                <SelectTrigger className="input-field">
+              <Select
+                value={selectedClient}
+                onValueChange={(v) => {
+                    setSelectedClient(v);
+                    setSelectedAddress("");
+                    if (errors.selectedClient) validateField("selectedClient", v);
+                }}
+              >
+                <SelectTrigger className={`input-field ${errors.selectedClient ? "border-red-500 focus:ring-red-500" : ""}`}>
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
@@ -269,6 +347,7 @@ export default function EditOrderPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.selectedClient && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.selectedClient}</p>}
             </div>
 
             {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
@@ -297,7 +376,7 @@ export default function EditOrderPage() {
             <div className="space-y-2">
               <Label>Adicionar Serviços *</Label>
               <Select onValueChange={addService}>
-                <SelectTrigger className="input-field">
+                <SelectTrigger className={`input-field ${errors.services ? "border-red-500 focus:ring-red-500" : ""}`}>
                   <SelectValue placeholder="Selecione um serviço" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,6 +387,7 @@ export default function EditOrderPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.services && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.services}</p>}
             </div>
 
             {/* Selected Services */}
@@ -322,9 +402,18 @@ export default function EditOrderPage() {
                     >
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{service.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          R$ {service.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} x {service.quantity}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-7 w-24 text-xs bg-background/50 border-border/50"
+                            value={service.price}
+                            onChange={(e) => updatePrice(service.name, parseFloat(e.target.value) || 0)}
+                          />
+                          <span className="text-xs text-muted-foreground">x {service.quantity}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -370,10 +459,39 @@ export default function EditOrderPage() {
               />
             </div>
 
+            {/* Observations */}
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea
+                placeholder="Anotações adicionais..."
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                className="min-h-20 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
+              />
+            </div>
+
             {/* Discount */}
             <div className="space-y-2">
-              <Label>Desconto (R$)</Label>
-              <Input type="number" step="0.01" placeholder="0,00" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input-field" />
+              <Label>Desconto</Label>
+              <div className="flex gap-2">
+                <Select value={discountType} onValueChange={(v) => setDiscountType(v as "fixed" | "percentage")}>
+                   <SelectTrigger className="w-[110px] input-field">
+                    <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="fixed">R$ (Real)</SelectItem>
+                     <SelectItem value="percentage">% (Porc.)</SelectItem>
+                   </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="input-field flex-1"
+                />
+              </div>
             </div>
 
             {/* Custom Fields */}
@@ -381,6 +499,7 @@ export default function EditOrderPage() {
               entityType="order"
               values={customFieldValues}
               onValuesChange={setCustomFieldValues}
+              errors={customFieldErrors}
             />
 
             {/* Total */}
@@ -391,8 +510,8 @@ export default function EditOrderPage() {
               </div>
               {discountValue > 0 && (
                 <div className="flex justify-between text-sm text-status-finished">
-                  <span>Desconto</span>
-                  <span>- R$ {discountValue.toFixed(2)}</span>
+                  <span>Desconto {discountType === "percentage" && `(${discount}%)`}</span>
+                  <span>- R$ {discountValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t border-primary/20">

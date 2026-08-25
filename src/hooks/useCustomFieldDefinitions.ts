@@ -8,17 +8,18 @@ export interface CustomFieldDefinition {
     user_id: string;
     entity_type: "client" | "service" | "order";
     name: string;
-    type: "text" | "number" | "date" | "select" | "textarea" | "checkbox";
+    type: "text" | "number" | "date" | "select" | "textarea" | "checkbox" | "email" | "phone" | "document" | "zip" | "plate" | "multiselect";
     required: boolean;
     options?: string[];
     placeholder?: string;
     created_at: string;
+    order_index: number;
 }
 
 export interface CreateCustomFieldDefinitionData {
     entity_type: "client" | "service" | "order";
     name: string;
-    type: "text" | "number" | "date" | "select" | "textarea" | "checkbox";
+    type: "text" | "number" | "date" | "select" | "textarea" | "checkbox" | "email" | "phone" | "document" | "zip" | "plate" | "multiselect";
     required: boolean;
     options?: string[];
     placeholder?: string;
@@ -38,6 +39,7 @@ export function useCustomFieldDefinitions(entityType?: "client" | "service" | "o
                 .from("custom_field_definitions")
                 .select("*")
                 .eq("user_id", user.id)
+                .order("order_index", { ascending: true })
                 .order("created_at", { ascending: true });
 
             if (entityType) {
@@ -61,10 +63,22 @@ export function useCustomFieldDefinitions(entityType?: "client" | "service" | "o
         mutationFn: async (newField: CreateCustomFieldDefinitionData) => {
             if (!user) throw new Error("User not authenticated");
 
+            // Get max order index
+            const { data: existingFields } = await supabase
+                .from("custom_field_definitions")
+                .select("order_index")
+                .eq("user_id", user.id)
+                .eq("entity_type", newField.entity_type)
+                .order("order_index", { ascending: false })
+                .limit(1);
+
+            const nextOrderIndex = (existingFields?.[0]?.order_index ?? 0) + 1;
+
             const { data, error } = await supabase
                 .from("custom_field_definitions")
                 .insert([{
                     user_id: user.id,
+                    order_index: nextOrderIndex,
                     ...newField
                 }])
                 .select()
@@ -125,10 +139,40 @@ export function useCustomFieldDefinitions(entityType?: "client" | "service" | "o
         },
     });
 
+    // Reorder definitions
+    const reorderDefinitions = useMutation({
+        mutationFn: async (items: { id: string; order_index: number }[]) => {
+            if (!user) throw new Error("User not authenticated");
+
+            // Perform updates in parallel
+            const updates = items.map(item =>
+                supabase
+                    .from("custom_field_definitions")
+                    .update({ order_index: item.order_index })
+                    .eq("id", item.id)
+                    .eq("user_id", user.id)
+            );
+
+            await Promise.all(updates);
+        },
+        onSuccess: () => {
+             // Optimistic update handled by component or just invalidate
+            queryClient.invalidateQueries({ queryKey: ["customFieldDefinitions"] });
+        },
+        onError: (error) => {
+            toast({
+                title: "Erro ao ordenar",
+                description: "Não foi possível salvar a nova ordem.",
+                variant: "destructive",
+            });
+        },
+    });
+
     return {
         fields: query.data || [],
         isLoading: query.isLoading,
         createDefinition,
         deleteDefinition,
+        reorderDefinitions,
     };
 }
