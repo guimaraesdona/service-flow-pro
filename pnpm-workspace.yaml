@@ -1,0 +1,4 @@
+# Dependências autorizadas a rodar scripts de build (pnpm >= 11)
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
