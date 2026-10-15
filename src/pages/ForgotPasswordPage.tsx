@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { supabase, authRedirectUrl } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -14,15 +15,28 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: authRedirectUrl("/redefinir-senha"),
+      });
+
+      if (error) throw error;
+
       setSent(true);
       toast({
         title: "Email enviado!",
         description: "Verifique sua caixa de entrada.",
       });
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar email",
+        description: error instanceof Error ? error.message : "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

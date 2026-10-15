@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase, authRedirectUrl } from "@/lib/supabase";
 import { maskPhone, maskDocument, maskCEP } from "@/utils/masks";
 import { validateEmail, validateDocument } from "@/utils/validations";
 
@@ -135,6 +135,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: authRedirectUrl("/dashboard"),
           data: {
             full_name: formData.name,
             phone: formData.phone,

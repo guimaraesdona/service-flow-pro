@@ -10,6 +10,22 @@ import { supabase } from "@/lib/supabase";
 import { AppLogo } from "@/components/ui/app-logo";
 import { validateEmail } from "@/utils/validations";
 
+// Traduz os erros do Supabase Auth. Antes todo erro virava a mesma mensagem
+// genérica, o que escondia, por exemplo, uma conta com email não confirmado.
+const loginErrorMessage = (error: { code?: string; message?: string }) => {
+  switch (error.code) {
+    case "invalid_credentials":
+      return "Email ou senha incorretos.";
+    case "email_not_confirmed":
+      return "Confirme seu email pelo link que enviamos antes de entrar.";
+    case "over_request_rate_limit":
+    case "over_email_send_rate_limit":
+      return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    default:
+      return error.message || "Ocorreu um erro ao fazer login.";
+  }
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -69,9 +85,7 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         title: "Erro ao entrar",
-        description: error.message === "Invalid global logins"
-          ? "Credenciais inválidas."
-          : "Ocorreu um erro ao fazer login.",
+        description: loginErrorMessage(error),
         variant: "destructive",
       });
     } finally {

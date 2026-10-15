@@ -15,3 +15,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// URL absoluta de uma rota do app, para os links dos e-mails do Supabase Auth
+// (confirmação de cadastro, recuperação de senha). Respeita o BASE_PATH do
+// build, então funciona tanto no GitHub Pages quanto na raiz de um domínio.
+// A URL também precisa constar em Authentication → URL Configuration no
+// Supabase; senão o link cai no Site URL.
+export const authRedirectUrl = (path: string) =>
+    new URL(path.replace(/^\//, ""), window.location.origin + import.meta.env.BASE_URL).href;
