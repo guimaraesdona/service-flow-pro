@@ -234,6 +234,8 @@ O relatório de cobertura (`pnpm test:coverage`) mede apenas `src/utils`, `src/l
 
 `pnpm build` gera um site estático em `dist/`, publicável em qualquer host de estáticos (GitHub Pages, Cloudflare Pages, Netlify, S3, nginx). Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no ambiente de build e habilite o fallback de SPA para `index.html` (necessário pelo React Router).
 
+> **As variáveis são inlinadas em tempo de build, não lidas em runtime.** Elas precisam existir na máquina/CI que executa `pnpm build` — publicar o `dist/` e só depois configurar o host não resolve. Se faltarem, o build aborta com a lista do que está ausente (guard em `vite.config.ts`); use `.env.example` como referência.
+
 Se o site não ficar na raiz do domínio, defina `BASE_PATH` no build (ex.: `BASE_PATH=/service-flow-pro/`). O valor é usado como `base` do Vite e como `basename` do router.
 
 ### GitHub Pages
