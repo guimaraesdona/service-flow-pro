@@ -232,4 +232,14 @@ O relatório de cobertura (`pnpm test:coverage`) mede apenas `src/utils`, `src/l
 
 ## Deploy
 
-`pnpm build` gera um site estático em `dist/`, publicável em qualquer host de estáticos (Vercel, Netlify, Cloudflare Pages, S3, nginx). Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no ambiente de build e habilite o fallback de SPA para `index.html` (necessário pelo React Router).
+`pnpm build` gera um site estático em `dist/`, publicável em qualquer host de estáticos (GitHub Pages, Cloudflare Pages, Netlify, S3, nginx). Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no ambiente de build e habilite o fallback de SPA para `index.html` (necessário pelo React Router).
+
+Se o site não ficar na raiz do domínio, defina `BASE_PATH` no build (ex.: `BASE_PATH=/service-flow-pro/`). O valor é usado como `base` do Vite e como `basename` do router.
+
+### GitHub Pages
+
+O workflow `.github/workflows/deploy-pages.yml` publica a cada push na `main`. Antes do primeiro deploy, configure no repositório:
+
+1. **Settings → Pages → Source**: `GitHub Actions`.
+2. **Settings → Secrets and variables → Actions**: secrets `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+3. No Supabase, em **Authentication → URL Configuration**, adicione a URL do Pages às Redirect URLs (e ajuste o Site URL, se for o endereço principal).

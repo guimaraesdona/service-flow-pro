@@ -5,6 +5,10 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Prefixo de publicação. No GitHub Pages o site fica em /service-flow-pro/,
+  // então o workflow define BASE_PATH; em hosts na raiz do domínio
+  // (Cloudflare Pages, domínio próprio) fica o padrão "/".
+  base: process.env.BASE_PATH ?? "/",
   server: {
     host: "::",
     port: 8080,

@@ -1,0 +1,65 @@
+name: Deploy no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Um deploy por vez; um push novo cancela o anterior que ainda estiver rodando.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A versão do pnpm vem do campo "packageManager" do package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm test
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - run: pnpm build
+        env:
+          # O Vite grava as VITE_* no bundle durante o build: elas vêm dos
+          # secrets do repositório, não do ambiente em runtime.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # "/service-flow-pro" num site de projeto, "" com domínio próprio.
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+
+      # O Pages não tem rewrite para SPA: ele serve o 404.html em qualquer rota
+      # desconhecida, então uma cópia do index.html deixa o React Router resolver
+      # links diretos e F5 em rotas como /ordens/123.
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
