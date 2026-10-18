@@ -13,6 +13,12 @@ export default defineConfig(({ command, mode }) => {
   // deploy é melhor do que publicar um bundle morto.
   if (command === "build" && mode !== "development") {
     const env = loadEnv(mode, process.cwd(), "VITE_");
+    // O modo mock troca o Supabase por um banco em memória no navegador.
+    // Publicar isso seria um site "funcionando" que não grava nada de verdade.
+    if (env.VITE_MOCK === "true") {
+      throw new Error("Build abortado — VITE_MOCK=true. O modo mock é só para `pnpm dev:mock`.");
+    }
+
     const missing = REQUIRED_ENV.filter((key) => !env[key]);
 
     if (missing.length > 0) {

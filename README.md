@@ -60,11 +60,22 @@ VITE_SUPABASE_ANON_KEY=<sua-anon-key>
 > `.env.local` está coberto pelo `.gitignore` (padrão `*.local`) e **não deve ser commitado**.
 > Sem essas variáveis o app carrega, mas nenhuma operação de dados funciona — o client Supabase apenas emite um warning no console.
 
+### Modo mock (sem banco)
+
+```sh
+pnpm dev:mock
+```
+
+Sobe o app contra um Supabase em memória (`src/lib/mockSupabase.ts`), sem Docker, banco ou credenciais. Login de demonstração: **demo@guimaraesdona.com.br** / **demo1234**. Os dados de exemplo (`src/lib/mockSeed.ts`) ficam no `localStorage` do navegador e sobrevivem a um F5. Para voltar ao estado inicial, rode `localStorage.removeItem("sfp-mock-db")` no console.
+
+O mock cobre só o subconjunto do client que o app usa (queries com embeds, insert/update/delete, auth por email/senha e upload de imagens). Ao usar um método novo do Supabase num hook, implemente-o lá também. Nenhum email é enviado, e o build de produção aborta se `VITE_MOCK=true`.
+
 ### Scripts
 
 | Comando | O que faz |
 | --- | --- |
 | `pnpm dev` | Servidor de desenvolvimento com HMR (porta 8080) |
+| `pnpm dev:mock` | Servidor de desenvolvimento com o Supabase em memória (sem banco) |
 | `pnpm build` | Build de produção em `dist/` |
 | `pnpm build:dev` | Build usando o modo `development` |
 | `pnpm preview` | Serve localmente o conteúdo de `dist/` |
