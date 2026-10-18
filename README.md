@@ -4,6 +4,8 @@ Sistema web para gestão de **ordens de serviço**: cadastro de clientes, catál
 
 Interface em português (pt-BR), responsiva (sidebar no desktop, bottom nav no mobile), com tema claro/escuro e campos personalizados configuráveis por entidade.
 
+Produção: **https://os.guimaraesdona.com.br**
+
 ---
 
 ## Stack
@@ -244,4 +246,17 @@ O workflow `.github/workflows/deploy-pages.yml` publica a cada push na `main`. A
 
 1. **Settings → Pages → Source**: `GitHub Actions`.
 2. **Settings → Secrets and variables → Actions**: secrets `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
-3. No Supabase, em **Authentication → URL Configuration**, adicione a URL do Pages às Redirect URLs (e ajuste o Site URL, se for o endereço principal).
+3. **Settings → Pages → Custom domain**: `os.guimaraesdona.com.br`, com **Enforce HTTPS** ligado.
+4. No Supabase, em **Authentication → URL Configuration**: Site URL `https://os.guimaraesdona.com.br` e `https://os.guimaraesdona.com.br/**` nas Redirect URLs. Sem isso, os links de confirmação de cadastro e de recuperação de senha caem no Site URL antigo.
+
+Com domínio próprio o site fica na raiz, então o `actions/configure-pages` devolve `base_path` vazio e o build sai com `base` `/` — nada a mudar no workflow. A troca de domínio só vale a partir do próximo build: depois de configurar o domínio, rode o workflow de novo (**Actions → Deploy no GitHub Pages → Run workflow**).
+
+#### DNS (Cloudflare)
+
+O domínio é gerenciado no Cloudflare. O app fica no subdomínio `os`; a raiz `guimaraesdona.com.br` não é usada por ele. Registro na zona `guimaraesdona.com.br`:
+
+| Tipo | Nome | Conteúdo |
+| --- | --- | --- |
+| `CNAME` | `os` | `guimaraesdona.github.io` |
+
+Deixe o registro como **DNS only** (nuvem cinza). Com o proxy do Cloudflare ligado, o GitHub não consegue emitir o certificado HTTPS do domínio.
