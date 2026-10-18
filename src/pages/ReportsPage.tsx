@@ -4,7 +4,6 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
 import {
   FileText,
   Download,
@@ -42,7 +41,6 @@ export default function ReportsPage() {
   const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [selectedClient, setSelectedClient] = useState("all");
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
@@ -73,39 +71,6 @@ export default function ReportsPage() {
       pendingCount
     };
   }, [filteredOrders]);
-
-  const handleExportPDF = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast({
-        title: "PDF gerado!",
-        description: "O relatório foi baixado com sucesso.",
-      });
-    }, 1500);
-  };
-
-  const handleExportExcel = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast({
-        title: "Excel gerado!",
-        description: "O relatório foi baixado com sucesso.",
-      });
-    }, 1500);
-  };
-
-  const handleSendEmail = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast({
-        title: "Email enviado!",
-        description: "O relatório foi enviado para seu email.",
-      });
-    }, 1500);
-  };
 
   const getMonthName = (value: string) => {
     return months.find(m => m.value === value)?.label || "";
@@ -222,17 +187,17 @@ export default function ReportsPage() {
                     <p className="text-xs text-muted-foreground">Ordens</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-finished">
+                    <p className="text-2xl font-bold text-status-finished-fg">
                       R$ {metrics.totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
                     <p className="text-xs text-muted-foreground">Faturamento</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-progress">{metrics.finishedCount}</p>
+                    <p className="text-2xl font-bold text-status-progress-fg">{metrics.finishedCount}</p>
                     <p className="text-xs text-muted-foreground">Finalizadas</p>
                   </div>
                   <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-waiting">{metrics.pendingCount}</p>
+                    <p className="text-2xl font-bold text-status-waiting-fg">{metrics.pendingCount}</p>
                     <p className="text-xs text-muted-foreground">Pendentes</p>
                   </div>
                 </div>
@@ -246,45 +211,20 @@ export default function ReportsPage() {
                 Exportar Relatório
               </h3>
 
+              <p className="text-sm text-muted-foreground mb-3">
+                Em breve. Por enquanto, use a impressão de cada ordem.
+              </p>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                <Button
-                  onClick={handleExportPDF}
-                  className="w-full justify-start"
-                  variant="outline"
-                  disabled={isGenerating}
-                >
-                  <File className="w-5 h-5 mr-3 text-red-500" />
-                  <div className="text-left">
-                    <p className="font-medium">Exportar PDF</p>
-                    <p className="text-xs text-muted-foreground">Documento formatado</p>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={handleExportExcel}
-                  className="w-full justify-start"
-                  variant="outline"
-                  disabled={isGenerating}
-                >
-                  <FileSpreadsheet className="w-5 h-5 mr-3 text-green-600" />
-                  <div className="text-left">
-                    <p className="font-medium">Exportar Excel</p>
-                    <p className="text-xs text-muted-foreground">Planilha detalhada</p>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={handleSendEmail}
-                  className="w-full justify-start"
-                  variant="outline"
-                  disabled={isGenerating}
-                >
-                  <Mail className="w-5 h-5 mr-3 text-primary" />
-                  <div className="text-left">
-                    <p className="font-medium">Enviar Email</p>
-                    <p className="text-xs text-muted-foreground">Receba por email</p>
-                  </div>
-                </Button>
+                {[
+                  { icon: File, label: "PDF" },
+                  { icon: FileSpreadsheet, label: "Excel" },
+                  { icon: Mail, label: "Envio por email" },
+                ].map(({ icon: Icon, label }) => (
+                  <Button key={label} className="w-full justify-start" variant="outline" disabled>
+                    <Icon className="w-5 h-5 mr-3" />
+                    {label}
+                  </Button>
+                ))}
               </div>
             </div>
           </div>

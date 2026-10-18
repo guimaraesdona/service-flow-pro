@@ -15,6 +15,7 @@ export function useTransactions() {
             .select(`
         *,
         order:service_orders(
+          number,
           client:clients(name)
         )
       `)
@@ -25,6 +26,7 @@ export function useTransactions() {
         return (data || []).map((t: any) => ({
             id: t.id,
             orderId: t.order_id,
+            orderNumber: t.order?.number,
             clientName: t.order?.client?.name || "Cliente Desconhecido",
             amount: t.amount,
             date: t.date,
@@ -39,7 +41,7 @@ export function useTransactions() {
     });
 
     const createTransaction = useMutation({
-        mutationFn: async (newTransaction: Omit<Transaction, "id" | "clientName">) => {
+        mutationFn: async (newTransaction: Omit<Transaction, "id" | "clientName" | "orderNumber">) => {
             const { data, error } = await supabase
                 .from("transactions")
                 .insert({

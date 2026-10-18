@@ -91,6 +91,7 @@ export type TransactionType = "received" | "pending";
 export interface Transaction {
     id: string;
     orderId: string;
+    orderNumber?: string | null;
     clientName: string;
     amount: number;
     date: string;

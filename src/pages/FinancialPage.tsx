@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { useTransactions } from "@/hooks/useTransactions";
+import { formatOrderNumber } from "@/lib/formatters";
 import { useOrders } from "@/hooks/useOrders";
 
 export default function FinancialPage() {
@@ -149,32 +150,32 @@ export default function FinancialPage() {
 
           <div className="card-elevated p-4 animate-fade-in" style={{ animationDelay: "0.05s" }}>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-status-finished/20 flex items-center justify-center">
-                <CheckCircle className="w-4 h-4 text-status-finished" />
+              <div className="w-8 h-8 rounded-lg bg-status-finished-bg flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-status-finished-fg" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">Recebido</p>
-            <p className="text-lg font-bold text-status-finished">
+            <p className="text-lg font-bold text-status-finished-fg">
               R$ {receivedRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
 
           <div className="card-elevated p-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-status-waiting/20 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-status-waiting" />
+              <div className="w-8 h-8 rounded-lg bg-status-waiting-bg flex items-center justify-center">
+                <Clock className="w-4 h-4 text-status-waiting-fg" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">Pendente</p>
-            <p className="text-lg font-bold text-status-waiting">
+            <p className="text-lg font-bold text-status-waiting-fg">
               R$ {pendingRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
 
           <div className="card-elevated p-4 animate-fade-in" style={{ animationDelay: "0.15s" }}>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-status-progress/20 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-status-progress" />
+              <div className="w-8 h-8 rounded-lg bg-status-progress-bg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-status-progress-fg" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">Total Pago</p>
@@ -217,7 +218,7 @@ export default function FinancialPage() {
                         <SelectContent>
                           {orders?.map((order) => (
                             <SelectItem key={order.id} value={order.id}>
-                              #{order.number || order.id.slice(0, 4)} - {order.clientName} (R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
+                              {formatOrderNumber(order)} - {order.clientName} (R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -275,15 +276,15 @@ export default function FinancialPage() {
                 payments.map((payment) => (
                   <div key={payment.id} className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${payment.type === "received" ? "bg-status-finished/20" : "bg-status-waiting/20"
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${payment.type === "received" ? "bg-status-finished-bg" : "bg-status-waiting-bg"
                         }`}>
-                        <User className={`w-5 h-5 ${payment.type === "received" ? "text-status-finished" : "text-status-waiting"
+                        <User className={`w-5 h-5 ${payment.type === "received" ? "text-status-finished-fg" : "text-status-waiting-fg"
                           }`} />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">{payment.clientName}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>Ordem #{payment.orderId.slice(0, 8)}</span>
+                          <span>Ordem {formatOrderNumber({ id: payment.orderId, number: payment.orderNumber })}</span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -295,7 +296,7 @@ export default function FinancialPage() {
 
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className={`font-bold ${payment.type === "received" ? "text-status-finished" : "text-status-waiting"
+                        <p className={`font-bold ${payment.type === "received" ? "text-status-finished-fg" : "text-status-waiting-fg"
                           }`}>
                           R$ {payment.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </p>

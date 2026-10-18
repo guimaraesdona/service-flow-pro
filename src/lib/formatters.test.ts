@@ -5,6 +5,7 @@ import {
   formatCPF,
   formatCurrency,
   formatDocument,
+  formatOrderNumber,
   formatPhone,
   normalizeDocument,
 } from "./formatters";
@@ -74,5 +75,16 @@ describe("formatCurrency", () => {
 
   it("formata valores negativos", () => {
     expect(normalize(formatCurrency(-99.9))).toBe("-R$ 99,90");
+  });
+});
+
+describe("formatOrderNumber", () => {
+  it("usa o número da OS quando existe", () => {
+    expect(formatOrderNumber({ id: "26e8f1aa-0000", number: "0009" })).toBe("#0009");
+  });
+
+  it("cai para o início do id, sem expor o UUID inteiro", () => {
+    expect(formatOrderNumber({ id: "26e8f1aa-0000-4000-8000-000000000000" })).toBe("#26E8");
+    expect(formatOrderNumber({ id: "26e8f1aa-0000", number: null })).toBe("#26E8");
   });
 });

@@ -5,15 +5,19 @@ import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
-import { ServiceOrderPrint } from "@/components/print/ServiceOrderPrint";
+import { ServiceOrderPrint, PrintCustomField } from "@/components/print/ServiceOrderPrint";
 import { useOrders } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
+import { printableValue } from "@/lib/customFields";
+
 
 export default function PrintOrderPage() {
   const { id } = useParams();
   const componentRef = useRef<HTMLDivElement>(null);
   const { orders, isLoading } = useOrders();
   const { profile } = useProfile();
+  const { fields: orderFields } = useCustomFieldDefinitions("order");
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -49,6 +53,11 @@ export default function PrintOrderPage() {
   }, []);
 
   const order = orders?.find(o => o.id === id);
+
+  const printFields: PrintCustomField[] = orderFields.flatMap((field) => {
+    const value = printableValue(order?.customFields?.[field.id]);
+    return value ? [{ name: field.name, value }] : [];
+  });
 
   if (isLoading) {
     return (
@@ -112,10 +121,24 @@ export default function PrintOrderPage() {
       <div className="flex-1 flex justify-center p-4 bg-secondary/30 overflow-auto print:p-0 print:bg-white print:overflow-visible print:block dark:bg-black/20">
         <div className="w-full max-w-[800px] print:w-full print:max-w-none print:h-auto animate-fade-in print:animate-none">
           <div className="shadow-lg print:shadow-none bg-white min-h-[500px] print:min-h-0">
-            <ServiceOrderPrint ref={componentRef} order={order} logoUrl={profile?.use_logo_for_print ? profile?.avatar_url : undefined} />
+            <ServiceOrderPrint
+              ref={componentRef}
+              order={order}
+              business={profile}
+              logoUrl={profile?.use_logo_for_print ? profile?.avatar_url : undefined}
+              customFields={printFields}
+            />
           </div>
 
           <div className="mt-8 text-center print:hidden pb-8">
+            {!profile?.name && (
+              <p className="text-sm text-foreground mb-2">
+                O recibo sai sem o nome da empresa.{" "}
+                <Link to="/configuracoes" className="font-medium text-primary underline underline-offset-4">
+                  Preencha em Configurações
+                </Link>
+              </p>
+            )}
             <p className="text-muted-foreground text-sm mb-4">
               Verifique se a visualização está correta antes de imprimir.
             </p>

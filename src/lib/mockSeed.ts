@@ -70,15 +70,15 @@ export function buildSeed(): Record<string, Record<string, unknown>[]> {
     const svc = (index: number, quantity = 1) => ({ name: services[index].name, quantity, price: services[index].price });
 
     const orderSpecs = [
-        { client: 0, days: 160, status: "finished", priority: "normal", items: [svc(0), svc(1)] },
+        { client: 0, days: 160, status: "finished", priority: "normal", items: [svc(0), svc(1)], plate: "RTA4B21", km: 41230 },
         { client: 1, days: 140, status: "finished", priority: "high", items: [svc(2, 2), svc(3)] },
         { client: 2, days: 115, status: "finished", priority: "normal", items: [svc(4)] },
         { client: 3, days: 95, status: "cancelled", priority: "low", items: [svc(5)] },
         { client: 1, days: 75, status: "finished", priority: "normal", items: [svc(0, 3)] },
         { client: 4, days: 50, status: "finished", priority: "normal", items: [svc(3), svc(4)] },
-        { client: 0, days: 30, status: "finished", priority: "high", items: [svc(2)], discount: 20 },
-        { client: 2, days: 12, status: "waiting", priority: "normal", items: [svc(1)] },
-        { client: 3, days: 6, status: "progress", priority: "high", items: [svc(2), svc(3)] },
+        { client: 0, days: 30, status: "finished", priority: "high", items: [svc(2)], discount: 20, plate: "RTA4B21", km: 45810 },
+        { client: 2, days: 12, status: "waiting", priority: "normal", items: [svc(1)], plate: "HMK7C04", km: 120400 },
+        { client: 3, days: 6, status: "progress", priority: "high", items: [svc(2), svc(3)], plate: "QWE2F87", km: 88120 },
         { client: 4, days: 2, status: "start", priority: "normal", items: [svc(0)], scheduledInDays: 3 },
         { client: 1, days: 1, status: "start", priority: "low", items: [svc(4, 2)], scheduledInDays: 7 },
     ];
@@ -98,7 +98,10 @@ export function buildSeed(): Record<string, Record<string, unknown>[]> {
             description: spec.items.map((item) => item.name).join(", "),
             observations: null,
             scheduled_at: spec.scheduledInDays ? daysAgo(-spec.scheduledInDays, 9) : null,
-            custom_fields: {},
+            // Placa e km (campos personalizados de ordem definidos mais abaixo).
+            custom_fields: spec.plate
+                ? { [id("50000000", 1)]: spec.plate, [id("50000000", 2)]: String(spec.km) }
+                : {},
             image_url: null,
             created_at: daysAgo(spec.days),
         };

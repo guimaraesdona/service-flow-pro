@@ -57,3 +57,12 @@ export const formatCurrency = (value: number) => {
 export const normalizeDocument = (value: string) => {
   return value.replace(/\D/g, "");
 };
+
+// Número exibido da OS. `number` é opcional no banco (ver migration); sem ele,
+// usa o início do id em maiúsculas, para nunca mostrar o UUID inteiro.
+export const formatOrderNumber = (order: { id: string; number?: string | null }) =>
+  `#${order.number || order.id.slice(0, 4).toUpperCase()}`;
+
+const PRIORITY_LABELS: Record<string, string> = { low: "Baixa", normal: "Normal", high: "Alta" };
+
+export const formatPriority = (priority: string) => PRIORITY_LABELS[priority] ?? priority;

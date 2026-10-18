@@ -1,13 +1,29 @@
 import { forwardRef } from "react";
-import { ServiceOrder } from "@/types";
+import { Profile, ServiceOrder } from "@/types";
+import { formatDocument, formatOrderNumber } from "@/lib/formatters";
 import { Receipt, Smartphone } from "lucide-react";
+
+export interface PrintCustomField {
+    name: string;
+    value: string;
+}
 
 interface ServiceOrderPrintProps {
     order: ServiceOrder;
+    // Dados da empresa vêm do perfil (Configurações): é o cabeçalho do recibo
+    // que o cliente leva para casa.
+    business?: Profile | null;
     logoUrl?: string | null;
+    customFields?: PrintCustomField[];
 }
 
-export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintProps>(({ order, logoUrl }, ref) => {
+const businessAddress = (business: Profile) => {
+    const street = [business.street, business.number].filter(Boolean).join(", ");
+    const city = [business.city, business.state].filter(Boolean).join("/");
+    return [street, business.neighborhood, city].filter(Boolean).join(" - ");
+};
+
+export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintProps>(({ order, business, logoUrl, customFields = [] }, ref) => {
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -37,23 +53,26 @@ export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintPro
                         </div>
                     )}
                 </div>
-                <h1 className="font-extrabold text-xl uppercase">Lava Jato Jardim América LTDA</h1>
-                {/* <p className="text-sm font-bold">Soluções Rápidas e Eficientes</p> */}
-                <div className="flex items-center justify-center gap-1 mt-2 text-sm font-bold">
-                    <Smartphone className="w-4 h-4" />
-                    <span>(34) 3213-5001</span>
-                </div>
-                {/* <div className="flex items-center justify-center gap-1 text-sm font-bold">
-                    <Globe className="w-4 h-4" />
-                    <span>www.serviceflow.pro</span>
-                </div> */}
+                <h1 className="font-extrabold text-xl uppercase">{business?.name || "Ordem de Serviço"}</h1>
+                {business?.document && (
+                    <p className="text-sm font-bold">{formatDocument(business.document)}</p>
+                )}
+                {business && businessAddress(business) && (
+                    <p className="text-sm font-semibold">{businessAddress(business)}</p>
+                )}
+                {business?.phone && (
+                    <div className="flex items-center justify-center gap-1 mt-2 text-sm font-bold">
+                        <Smartphone className="w-4 h-4" />
+                        <span>{business.phone}</span>
+                    </div>
+                )}
             </div>
 
             {/* Order Info */}
             <div className="mb-4 text-sm font-semibold">
                 <div className="flex justify-between">
                     <span className="font-extrabold">ORDEM:</span>
-                    <span className="font-bold text-lg">#{order.id}</span>
+                    <span className="font-bold text-lg">{formatOrderNumber(order)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="font-bold">DATA:</span>
@@ -63,6 +82,12 @@ export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintPro
                     <span className="font-extrabold">CLIENTE:</span>
                     <p className="truncate font-bold text-lg">{order.clientName}</p>
                 </div>
+                {customFields.map((field) => (
+                    <div key={field.name} className="flex justify-between gap-2">
+                        <span className="font-bold uppercase">{field.name}:</span>
+                        <span className="text-right">{field.value}</span>
+                    </div>
+                ))}
                 {order.description && (
                     <div className="mt-2 text-sm text-black">
                         <span className="font-extrabold text-black">DESCRIÇÃO:</span>
@@ -92,16 +117,23 @@ export const ServiceOrderPrint = forwardRef<HTMLDivElement, ServiceOrderPrintPro
 
             {/* Totals */}
             <div className="border-t-2 border-black pt-2 mb-6">
+                {/* `total` já vem com o desconto aplicado; o subtotal é a soma dos itens. */}
+                {(order.discount ?? 0) > 0 && (
+                    <>
+                        <div className="flex justify-between text-sm font-bold">
+                            <span>Subtotal</span>
+                            <span>R$ {formatCurrency(order.total + (order.discount ?? 0))}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-bold mb-1">
+                            <span>Desconto</span>
+                            <span>- R$ {formatCurrency(order.discount ?? 0)}</span>
+                        </div>
+                    </>
+                )}
                 <div className="flex justify-between font-extrabold text-xl">
                     <span>TOTAL</span>
                     <span>R$ {formatCurrency(order.total)}</span>
                 </div>
-                {order.discount && order.discount > 0 && (
-                    <div className="flex justify-between text-sm font-bold mt-1">
-                        <span>Desconto</span>
-                        <span>- R$ {formatCurrency(order.discount)}</span>
-                    </div>
-                )}
             </div>
 
             {/* Footer */}
