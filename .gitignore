@@ -27,3 +27,10 @@ dist-ssr
 package-lock.json
 yarn.lock
 bun.lockb
+
+# Impeccable: capturas, esboços e estado de sessão (só o sistema de design é versionado)
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/live/
+.impeccable/hook.cache.json

@@ -1,0 +1,62 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-flap.html"
+        ],
+        "createdAt": "2026-10-18T23:05:35.910Z",
+        "reason": "Claude: esboço descartável da rodada de decisão, não é código do app"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-18T23:05:37.169Z",
+        "reason": "Claude: esboço descartável da rodada de decisão, não é código do app"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-18T23:22:53.930Z",
+        "reason": "Claude: esboço descartável de direção alternativa; fonte própria da direção, fora do app"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-18T23:22:54.295Z",
+        "reason": "Claude: esboço descartável de direção alternativa; fonte própria da direção, fora do app"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-flap.html"
+        ],
+        "createdAt": "2026-10-18T23:22:54.659Z",
+        "reason": "Claude: esboço descartável de direção alternativa; fonte própria da direção, fora do app"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-18T23:22:55.067Z",
+        "reason": "Claude: esboço descartável de direção alternativa; fonte própria da direção, fora do app"
+      }
+    ]
+  }
+}

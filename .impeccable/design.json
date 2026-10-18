@@ -1,0 +1,772 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T23:19:36+00:00",
+  "title": "Design System: Service Flow Pro",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Azul Ordem",
+        "canonical": "hsl(221 83% 48%)",
+        "tonalRamp": [
+          "hsl(221 83% 15%)",
+          "hsl(221 83% 25%)",
+          "hsl(221 83% 36%)",
+          "hsl(221 83% 48%)",
+          "hsl(221 83% 60%)",
+          "hsl(221 83% 72%)",
+          "hsl(221 83% 85%)",
+          "hsl(221 83% 95%)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Branco sobre Azul",
+        "canonical": "hsl(0 0% 100%)",
+        "tonalRamp": [
+          "hsl(0 0% 15%)",
+          "hsl(0 0% 25%)",
+          "hsl(0 0% 36%)",
+          "hsl(0 0% 48%)",
+          "hsl(0 0% 60%)",
+          "hsl(0 0% 72%)",
+          "hsl(0 0% 85%)",
+          "hsl(0 0% 95%)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Azul Névoa",
+        "canonical": "hsl(221 83% 96%)",
+        "tonalRamp": [
+          "hsl(221 83% 15%)",
+          "hsl(221 83% 25%)",
+          "hsl(221 83% 36%)",
+          "hsl(221 83% 48%)",
+          "hsl(221 83% 60%)",
+          "hsl(221 83% 72%)",
+          "hsl(221 83% 85%)",
+          "hsl(221 83% 95%)"
+        ]
+      },
+      "accent-foreground": {
+        "role": "primary",
+        "displayName": "Azul Névoa, texto",
+        "canonical": "hsl(221 83% 36%)",
+        "tonalRamp": [
+          "hsl(221 83% 15%)",
+          "hsl(221 83% 25%)",
+          "hsl(221 83% 36%)",
+          "hsl(221 83% 48%)",
+          "hsl(221 83% 60%)",
+          "hsl(221 83% 72%)",
+          "hsl(221 83% 85%)",
+          "hsl(221 83% 95%)"
+        ]
+      },
+      "destructive": {
+        "role": "error",
+        "displayName": "Vermelho Alerta",
+        "canonical": "hsl(0 72% 45%)",
+        "tonalRamp": [
+          "hsl(0 72% 15%)",
+          "hsl(0 72% 25%)",
+          "hsl(0 72% 36%)",
+          "hsl(0 72% 48%)",
+          "hsl(0 72% 60%)",
+          "hsl(0 72% 72%)",
+          "hsl(0 72% 85%)",
+          "hsl(0 72% 95%)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Cinza Balcão",
+        "canonical": "hsl(220 20% 97%)",
+        "tonalRamp": [
+          "hsl(220 20% 15%)",
+          "hsl(220 20% 25%)",
+          "hsl(220 20% 36%)",
+          "hsl(220 20% 48%)",
+          "hsl(220 20% 60%)",
+          "hsl(220 20% 72%)",
+          "hsl(220 20% 85%)",
+          "hsl(220 20% 95%)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Branco Papel",
+        "canonical": "hsl(0 0% 100%)",
+        "tonalRamp": [
+          "hsl(0 0% 15%)",
+          "hsl(0 0% 25%)",
+          "hsl(0 0% 36%)",
+          "hsl(0 0% 48%)",
+          "hsl(0 0% 60%)",
+          "hsl(0 0% 72%)",
+          "hsl(0 0% 85%)",
+          "hsl(0 0% 95%)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Grafite Tinta",
+        "canonical": "hsl(222 25% 12%)",
+        "tonalRamp": [
+          "hsl(222 25% 15%)",
+          "hsl(222 25% 25%)",
+          "hsl(222 25% 36%)",
+          "hsl(222 25% 48%)",
+          "hsl(222 25% 60%)",
+          "hsl(222 25% 72%)",
+          "hsl(222 25% 85%)",
+          "hsl(222 25% 95%)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Cinza Nota",
+        "canonical": "hsl(220 9% 38%)",
+        "tonalRamp": [
+          "hsl(220 9% 15%)",
+          "hsl(220 9% 25%)",
+          "hsl(220 9% 36%)",
+          "hsl(220 9% 48%)",
+          "hsl(220 9% 60%)",
+          "hsl(220 9% 72%)",
+          "hsl(220 9% 85%)",
+          "hsl(220 9% 95%)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Cinza Hover",
+        "canonical": "hsl(220 14% 94%)",
+        "tonalRamp": [
+          "hsl(220 14% 15%)",
+          "hsl(220 14% 25%)",
+          "hsl(220 14% 36%)",
+          "hsl(220 14% 48%)",
+          "hsl(220 14% 60%)",
+          "hsl(220 14% 72%)",
+          "hsl(220 14% 85%)",
+          "hsl(220 14% 95%)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Cinza Hover suave",
+        "canonical": "hsl(220 14% 95%)",
+        "tonalRamp": [
+          "hsl(220 14% 15%)",
+          "hsl(220 14% 25%)",
+          "hsl(220 14% 36%)",
+          "hsl(220 14% 48%)",
+          "hsl(220 14% 60%)",
+          "hsl(220 14% 72%)",
+          "hsl(220 14% 85%)",
+          "hsl(220 14% 95%)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Cinza Linha",
+        "canonical": "hsl(220 13% 89%)",
+        "tonalRamp": [
+          "hsl(220 13% 15%)",
+          "hsl(220 13% 25%)",
+          "hsl(220 13% 36%)",
+          "hsl(220 13% 48%)",
+          "hsl(220 13% 60%)",
+          "hsl(220 13% 72%)",
+          "hsl(220 13% 85%)",
+          "hsl(220 13% 95%)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Cinza Campo",
+        "canonical": "hsl(220 13% 80%)",
+        "tonalRamp": [
+          "hsl(220 13% 15%)",
+          "hsl(220 13% 25%)",
+          "hsl(220 13% 36%)",
+          "hsl(220 13% 48%)",
+          "hsl(220 13% 60%)",
+          "hsl(220 13% 72%)",
+          "hsl(220 13% 85%)",
+          "hsl(220 13% 95%)"
+        ]
+      },
+      "status-start": {
+        "role": "status",
+        "displayName": "Aberta, tom sólido (pontos e barras)",
+        "canonical": "hsl(221 83% 53%)",
+        "tonalRamp": [
+          "hsl(221 83% 15%)",
+          "hsl(221 83% 25%)",
+          "hsl(221 83% 36%)",
+          "hsl(221 83% 48%)",
+          "hsl(221 83% 60%)",
+          "hsl(221 83% 72%)",
+          "hsl(221 83% 85%)",
+          "hsl(221 83% 95%)"
+        ]
+      },
+      "status-start-fg": {
+        "role": "status",
+        "displayName": "Aberta, texto",
+        "canonical": "hsl(221 75% 36%)",
+        "tonalRamp": [
+          "hsl(221 75% 15%)",
+          "hsl(221 75% 25%)",
+          "hsl(221 75% 36%)",
+          "hsl(221 75% 48%)",
+          "hsl(221 75% 60%)",
+          "hsl(221 75% 72%)",
+          "hsl(221 75% 85%)",
+          "hsl(221 75% 95%)"
+        ]
+      },
+      "status-start-bg": {
+        "role": "status",
+        "displayName": "Aberta, fundo de pílula",
+        "canonical": "hsl(221 90% 95%)",
+        "tonalRamp": [
+          "hsl(221 90% 15%)",
+          "hsl(221 90% 25%)",
+          "hsl(221 90% 36%)",
+          "hsl(221 90% 48%)",
+          "hsl(221 90% 60%)",
+          "hsl(221 90% 72%)",
+          "hsl(221 90% 85%)",
+          "hsl(221 90% 95%)"
+        ]
+      },
+      "status-progress": {
+        "role": "status",
+        "displayName": "Em andamento, tom sólido (pontos e barras)",
+        "canonical": "hsl(38 92% 50%)",
+        "tonalRamp": [
+          "hsl(38 92% 15%)",
+          "hsl(38 92% 25%)",
+          "hsl(38 92% 36%)",
+          "hsl(38 92% 48%)",
+          "hsl(38 92% 60%)",
+          "hsl(38 92% 72%)",
+          "hsl(38 92% 85%)",
+          "hsl(38 92% 95%)"
+        ]
+      },
+      "status-progress-fg": {
+        "role": "status",
+        "displayName": "Em andamento, texto",
+        "canonical": "hsl(30 90% 28%)",
+        "tonalRamp": [
+          "hsl(30 90% 15%)",
+          "hsl(30 90% 25%)",
+          "hsl(30 90% 36%)",
+          "hsl(30 90% 48%)",
+          "hsl(30 90% 60%)",
+          "hsl(30 90% 72%)",
+          "hsl(30 90% 85%)",
+          "hsl(30 90% 95%)"
+        ]
+      },
+      "status-progress-bg": {
+        "role": "status",
+        "displayName": "Em andamento, fundo de pílula",
+        "canonical": "hsl(42 96% 91%)",
+        "tonalRamp": [
+          "hsl(42 96% 15%)",
+          "hsl(42 96% 25%)",
+          "hsl(42 96% 36%)",
+          "hsl(42 96% 48%)",
+          "hsl(42 96% 60%)",
+          "hsl(42 96% 72%)",
+          "hsl(42 96% 85%)",
+          "hsl(42 96% 95%)"
+        ]
+      },
+      "status-waiting": {
+        "role": "status",
+        "displayName": "Aguardando, tom sólido (pontos e barras)",
+        "canonical": "hsl(271 60% 55%)",
+        "tonalRamp": [
+          "hsl(271 60% 15%)",
+          "hsl(271 60% 25%)",
+          "hsl(271 60% 36%)",
+          "hsl(271 60% 48%)",
+          "hsl(271 60% 60%)",
+          "hsl(271 60% 72%)",
+          "hsl(271 60% 85%)",
+          "hsl(271 60% 95%)"
+        ]
+      },
+      "status-waiting-fg": {
+        "role": "status",
+        "displayName": "Aguardando, texto",
+        "canonical": "hsl(271 55% 40%)",
+        "tonalRamp": [
+          "hsl(271 55% 15%)",
+          "hsl(271 55% 25%)",
+          "hsl(271 55% 36%)",
+          "hsl(271 55% 48%)",
+          "hsl(271 55% 60%)",
+          "hsl(271 55% 72%)",
+          "hsl(271 55% 85%)",
+          "hsl(271 55% 95%)"
+        ]
+      },
+      "status-waiting-bg": {
+        "role": "status",
+        "displayName": "Aguardando, fundo de pílula",
+        "canonical": "hsl(271 80% 95%)",
+        "tonalRamp": [
+          "hsl(271 80% 15%)",
+          "hsl(271 80% 25%)",
+          "hsl(271 80% 36%)",
+          "hsl(271 80% 48%)",
+          "hsl(271 80% 60%)",
+          "hsl(271 80% 72%)",
+          "hsl(271 80% 85%)",
+          "hsl(271 80% 95%)"
+        ]
+      },
+      "status-finished": {
+        "role": "status",
+        "displayName": "Finalizada, tom sólido (pontos e barras)",
+        "canonical": "hsl(152 60% 40%)",
+        "tonalRamp": [
+          "hsl(152 60% 15%)",
+          "hsl(152 60% 25%)",
+          "hsl(152 60% 36%)",
+          "hsl(152 60% 48%)",
+          "hsl(152 60% 60%)",
+          "hsl(152 60% 72%)",
+          "hsl(152 60% 85%)",
+          "hsl(152 60% 95%)"
+        ]
+      },
+      "status-finished-fg": {
+        "role": "status",
+        "displayName": "Finalizada, texto",
+        "canonical": "hsl(152 65% 25%)",
+        "tonalRamp": [
+          "hsl(152 65% 15%)",
+          "hsl(152 65% 25%)",
+          "hsl(152 65% 36%)",
+          "hsl(152 65% 48%)",
+          "hsl(152 65% 60%)",
+          "hsl(152 65% 72%)",
+          "hsl(152 65% 85%)",
+          "hsl(152 65% 95%)"
+        ]
+      },
+      "status-finished-bg": {
+        "role": "status",
+        "displayName": "Finalizada, fundo de pílula",
+        "canonical": "hsl(150 55% 92%)",
+        "tonalRamp": [
+          "hsl(150 55% 15%)",
+          "hsl(150 55% 25%)",
+          "hsl(150 55% 36%)",
+          "hsl(150 55% 48%)",
+          "hsl(150 55% 60%)",
+          "hsl(150 55% 72%)",
+          "hsl(150 55% 85%)",
+          "hsl(150 55% 95%)"
+        ]
+      },
+      "status-cancelled": {
+        "role": "status",
+        "displayName": "Cancelada, tom sólido (pontos e barras)",
+        "canonical": "hsl(220 9% 60%)",
+        "tonalRamp": [
+          "hsl(220 9% 15%)",
+          "hsl(220 9% 25%)",
+          "hsl(220 9% 36%)",
+          "hsl(220 9% 48%)",
+          "hsl(220 9% 60%)",
+          "hsl(220 9% 72%)",
+          "hsl(220 9% 85%)",
+          "hsl(220 9% 95%)"
+        ]
+      },
+      "status-cancelled-fg": {
+        "role": "status",
+        "displayName": "Cancelada, texto",
+        "canonical": "hsl(220 9% 36%)",
+        "tonalRamp": [
+          "hsl(220 9% 15%)",
+          "hsl(220 9% 25%)",
+          "hsl(220 9% 36%)",
+          "hsl(220 9% 48%)",
+          "hsl(220 9% 60%)",
+          "hsl(220 9% 72%)",
+          "hsl(220 9% 85%)",
+          "hsl(220 9% 95%)"
+        ]
+      },
+      "status-cancelled-bg": {
+        "role": "status",
+        "displayName": "Cancelada, fundo de pílula",
+        "canonical": "hsl(220 14% 93%)",
+        "tonalRamp": [
+          "hsl(220 14% 15%)",
+          "hsl(220 14% 25%)",
+          "hsl(220 14% 36%)",
+          "hsl(220 14% 48%)",
+          "hsl(220 14% 60%)",
+          "hsl(220 14% 72%)",
+          "hsl(220 14% 85%)",
+          "hsl(220 14% 95%)"
+        ]
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Grafite Azulado, fundo",
+        "canonical": "hsl(222 24% 8%)",
+        "tonalRamp": [
+          "hsl(222 24% 15%)",
+          "hsl(222 24% 25%)",
+          "hsl(222 24% 36%)",
+          "hsl(222 24% 48%)",
+          "hsl(222 24% 60%)",
+          "hsl(222 24% 72%)",
+          "hsl(222 24% 85%)",
+          "hsl(222 24% 95%)"
+        ]
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Grafite Azulado, card",
+        "canonical": "hsl(222 20% 11%)",
+        "tonalRamp": [
+          "hsl(222 20% 15%)",
+          "hsl(222 20% 25%)",
+          "hsl(222 20% 36%)",
+          "hsl(222 20% 48%)",
+          "hsl(222 20% 60%)",
+          "hsl(222 20% 72%)",
+          "hsl(222 20% 85%)",
+          "hsl(222 20% 95%)"
+        ]
+      },
+      "dark-foreground": {
+        "role": "neutral",
+        "displayName": "Texto claro",
+        "canonical": "hsl(220 15% 93%)",
+        "tonalRamp": [
+          "hsl(220 15% 15%)",
+          "hsl(220 15% 25%)",
+          "hsl(220 15% 36%)",
+          "hsl(220 15% 48%)",
+          "hsl(220 15% 60%)",
+          "hsl(220 15% 72%)",
+          "hsl(220 15% 85%)",
+          "hsl(220 15% 95%)"
+        ]
+      },
+      "dark-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Cinza Nota (escuro)",
+        "canonical": "hsl(220 10% 66%)",
+        "tonalRamp": [
+          "hsl(220 10% 15%)",
+          "hsl(220 10% 25%)",
+          "hsl(220 10% 36%)",
+          "hsl(220 10% 48%)",
+          "hsl(220 10% 60%)",
+          "hsl(220 10% 72%)",
+          "hsl(220 10% 85%)",
+          "hsl(220 10% 95%)"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Linha (escuro)",
+        "canonical": "hsl(222 15% 19%)",
+        "tonalRamp": [
+          "hsl(222 15% 15%)",
+          "hsl(222 15% 25%)",
+          "hsl(222 15% 36%)",
+          "hsl(222 15% 48%)",
+          "hsl(222 15% 60%)",
+          "hsl(222 15% 72%)",
+          "hsl(222 15% 85%)",
+          "hsl(222 15% 95%)"
+        ]
+      },
+      "dark-primary": {
+        "role": "primary",
+        "displayName": "Azul Ordem (escuro, preenchimento)",
+        "canonical": "hsl(221 83% 53%)",
+        "tonalRamp": [
+          "hsl(221 83% 15%)",
+          "hsl(221 83% 25%)",
+          "hsl(221 83% 36%)",
+          "hsl(221 83% 48%)",
+          "hsl(221 83% 60%)",
+          "hsl(221 83% 72%)",
+          "hsl(221 83% 85%)",
+          "hsl(221 83% 95%)"
+        ]
+      },
+      "dark-primary-text": {
+        "role": "primary",
+        "displayName": "Azul Ordem (escuro, texto)",
+        "canonical": "hsl(217 90% 72%)",
+        "tonalRamp": [
+          "hsl(217 90% 15%)",
+          "hsl(217 90% 25%)",
+          "hsl(217 90% 36%)",
+          "hsl(217 90% 48%)",
+          "hsl(217 90% 60%)",
+          "hsl(217 90% 72%)",
+          "hsl(217 90% 85%)",
+          "hsl(217 90% 95%)"
+        ]
+      },
+      "dark-destructive-text": {
+        "role": "error",
+        "displayName": "Vermelho Alerta (escuro, texto)",
+        "canonical": "hsl(0 85% 72%)",
+        "tonalRamp": [
+          "hsl(0 85% 15%)",
+          "hsl(0 85% 25%)",
+          "hsl(0 85% 36%)",
+          "hsl(0 85% 48%)",
+          "hsl(0 85% 60%)",
+          "hsl(0 85% 72%)",
+          "hsl(0 85% 85%)",
+          "hsl(0 85% 95%)"
+        ]
+      },
+      "dark-ring": {
+        "role": "primary",
+        "displayName": "Anel de foco (escuro)",
+        "canonical": "hsl(217 90% 62%)",
+        "tonalRamp": [
+          "hsl(217 90% 15%)",
+          "hsl(217 90% 25%)",
+          "hsl(217 90% 36%)",
+          "hsl(217 90% 48%)",
+          "hsl(217 90% 60%)",
+          "hsl(217 90% 72%)",
+          "hsl(217 90% 85%)",
+          "hsl(217 90% 95%)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline numérico",
+        "purpose": "Só números de resumo: contagem por status e faturamento."
+      },
+      "title": {
+        "displayName": "Título de página",
+        "purpose": "Título no cabeçalho desktop."
+      },
+      "body-touch": {
+        "displayName": "Corpo de toque",
+        "purpose": "Campos no celular (cai para 14px a partir de md), itens da folha Mais."
+      },
+      "body": {
+        "displayName": "Corpo",
+        "purpose": "Texto de trabalho: linhas, botões, navegação, títulos de seção (600)."
+      },
+      "label": {
+        "displayName": "Rótulo",
+        "purpose": "Pílula de status, cabeçalho de tabela, rótulos da barra inferior, erro de campo."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-card",
+        "value": "0 1px 2px 0 hsl(222 25% 12% / 0.04)",
+        "purpose": "Fio sob cards em repouso no tema claro; none no escuro."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 12px -2px hsl(222 25% 12% / 0.10), 0 2px 4px -2px hsl(222 25% 12% / 0.06)",
+        "purpose": "Popovers e tooltips. Escuro: 0 4px 12px -2px hsl(0 0% 0% / 0.5)."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 28px -6px hsl(222 25% 12% / 0.16), 0 4px 8px -4px hsl(222 25% 12% / 0.08)",
+        "purpose": "Botão flutuante Nova OS, toasts, diálogos. Escuro: 0 12px 28px -6px hsl(0 0% 0% / 0.6)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-colors",
+        "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Única transição em repouso: hover de linhas, navegação, botões e filtros."
+      },
+      {
+        "name": "overlay-enter",
+        "value": "tailwindcss-animate fade/zoom/slide, 200ms ease-out",
+        "purpose": "Entrada de diálogos, folhas, popovers e toasts. Conteúdo da página não anima."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação primária única do contexto: Nova OS, próximo passo da OS, salvar.",
+      "html": "<button class=\"ds-btn-primary\">Finalizar OS</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:8px 16px;border:0;border-radius:6px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms cubic-bezier(.4,0,.2,1)}.ds-btn-primary:hover{background:hsl(var(--primary)/.9)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}"
+    },
+    {
+      "name": "Botão outline",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Ações secundárias: Imprimir, Editar, desvios de status.",
+      "html": "<button class=\"ds-btn-outline\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9V2h12v7\"/><path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\"/></svg>Imprimir</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border:1px solid hsl(var(--input));border-radius:6px;background:hsl(var(--card));color:hsl(var(--foreground));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms}.ds-btn-outline:hover{background:hsl(var(--accent));color:hsl(var(--accent-foreground))}.ds-btn-outline:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}"
+    },
+    {
+      "name": "Excluir (danger quieto)",
+      "kind": "button",
+      "refersTo": "button-danger-quiet",
+      "description": "Ação destrutiva isolada no fim da tela, sempre com diálogo de confirmação.",
+      "html": "<button class=\"ds-btn-danger\">Excluir OS</button>",
+      "css": ".ds-btn-danger{height:40px;padding:0 16px;border:0;border-radius:6px;background:transparent;color:hsl(var(--destructive));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms}.ds-btn-danger:hover{background:hsl(var(--destructive)/.1)}.ds-btn-danger:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}"
+    },
+    {
+      "name": "Campo de busca",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo padrão com lupa; no desktop leva o atalho / à direita.",
+      "html": "<label class=\"ds-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input class=\"ds-input\" type=\"search\" placeholder=\"Buscar OS\" aria-label=\"Buscar ordens de serviço\"><kbd>/</kbd></label>",
+      "css": ".ds-search{position:relative;display:block;width:288px;color:hsl(var(--muted-foreground))}.ds-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%)}.ds-search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:0 6px;border:1px solid hsl(var(--border));border-radius:4px;font:500 11px/16px 'Inter Variable',system-ui,sans-serif}.ds-input{width:100%;height:40px;padding:8px 32px 8px 36px;border:1px solid hsl(var(--input));border-radius:6px;background:hsl(var(--card));color:hsl(var(--foreground));font:400 14px/20px 'Inter Variable',system-ui,sans-serif;transition:border-color 150ms}.ds-input::placeholder{color:hsl(var(--muted-foreground))}.ds-input:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}.ds-input[aria-invalid=true]{border-color:hsl(var(--destructive))}"
+    },
+    {
+      "name": "Pílula de status",
+      "kind": "chip",
+      "refersTo": "status-badge-progress",
+      "description": "Status da OS: fundo tingido, texto escuro do mesmo matiz, ponto sólido, rótulo sempre escrito.",
+      "html": "<span class=\"ds-status ds-status-start\"><i></i>Aberta</span> <span class=\"ds-status ds-status-progress\"><i></i>Em andamento</span> <span class=\"ds-status ds-status-waiting\"><i></i>Aguardando</span> <span class=\"ds-status ds-status-finished\"><i></i>Finalizada</span> <span class=\"ds-status ds-status-cancelled\"><i></i>Cancelada</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:9999px;font:500 12px/16px 'Inter Variable',system-ui,sans-serif;white-space:nowrap}.ds-status i{width:6px;height:6px;border-radius:9999px}.ds-status-start{background:hsl(var(--status-start-bg));color:hsl(var(--status-start-fg))}.ds-status-start i{background:hsl(var(--status-start))}.ds-status-progress{background:hsl(var(--status-progress-bg));color:hsl(var(--status-progress-fg))}.ds-status-progress i{background:hsl(var(--status-progress))}.ds-status-waiting{background:hsl(var(--status-waiting-bg));color:hsl(var(--status-waiting-fg))}.ds-status-waiting i{background:hsl(var(--status-waiting))}.ds-status-finished{background:hsl(var(--status-finished-bg));color:hsl(var(--status-finished-fg))}.ds-status-finished i{background:hsl(var(--status-finished))}.ds-status-cancelled{background:hsl(var(--status-cancelled-bg));color:hsl(var(--status-cancelled-fg))}.ds-status-cancelled i{background:hsl(var(--status-cancelled))}"
+    },
+    {
+      "name": "Filtro de status",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Filtros da lista de OS com contagem; ativo inverte para grafite.",
+      "html": "<div class=\"ds-filters\"><button class=\"ds-filter\" aria-pressed=\"true\">Todas <span>11</span></button><button class=\"ds-filter\" aria-pressed=\"false\">Abertas <span>2</span></button><button class=\"ds-filter\" aria-pressed=\"false\">Em andamento <span>1</span></button></div>",
+      "css": ".ds-filters{display:flex;gap:6px}.ds-filter{height:32px;padding:0 12px;border:1px solid hsl(var(--border));border-radius:9999px;background:hsl(var(--card));color:hsl(var(--muted-foreground));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:color 150ms,background-color 150ms}.ds-filter span{margin-left:6px;font-variant-numeric:tabular-nums}.ds-filter:hover{color:hsl(var(--foreground))}.ds-filter[aria-pressed=true]{background:hsl(var(--foreground));border-color:hsl(var(--foreground));color:hsl(var(--background))}.ds-filter[aria-pressed=true] span{opacity:.8}.ds-filter:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}"
+    },
+    {
+      "name": "Card com lista de OS",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Card de borda 1px com cabeçalho de seção e linhas divididas; números tabulares.",
+      "html": "<section class=\"ds-card\"><header><h2>Em aberto</h2><a href=\"#\">Ver todas</a></header><a class=\"ds-row\" href=\"#\"><b>#0011</b><span>Transportes Horizonte Ltda<small>Agendada 25 de out</small></span><em>R$ 400,00</em></a><a class=\"ds-row\" href=\"#\"><b>#0009</b><span>Juliana Pereira<small class=\"late\">Atrasada 12 de out</small></span><em>R$ 570,00</em></a></section>",
+      "css": ".ds-card{max-width:520px;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:8px;box-shadow:var(--shadow-card);overflow:hidden;font-family:'Inter Variable',system-ui,sans-serif;color:hsl(var(--foreground))}.ds-card header{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 16px;border-bottom:1px solid hsl(var(--border))}.ds-card h2{margin:0;font-size:14px;font-weight:600}.ds-card header a{font-size:14px;font-weight:500;color:hsl(var(--primary));text-decoration:none}.ds-card header a:hover{text-decoration:underline;text-underline-offset:4px}.ds-row{display:flex;align-items:center;gap:12px;padding:12px 16px;color:inherit;text-decoration:none;font-size:14px;transition:background-color 150ms}.ds-row+.ds-row{border-top:1px solid hsl(var(--border))}.ds-row:hover{background:hsl(var(--muted)/.6)}.ds-row:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:-2px}.ds-row b{width:56px;font-weight:600;font-variant-numeric:tabular-nums}.ds-row span{flex:1;font-weight:500}.ds-row small{display:block;font-size:12px;font-weight:400;color:hsl(var(--muted-foreground))}.ds-row small.late{color:hsl(var(--destructive));font-weight:500}.ds-row em{font-style:normal;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Navegação lateral",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Sidebar desktop de 240px; ativo em azul névoa.",
+      "html": "<nav class=\"ds-sidenav\" aria-label=\"Principal\"><a href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"9\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\"/></svg>Início</a><a href=\"#\" aria-current=\"page\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/></svg>Ordens de serviço</a><a href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2\"/></svg>Clientes</a></nav>",
+      "css": ".ds-sidenav{width:240px;padding:12px;background:hsl(var(--sidebar-background));border-right:1px solid hsl(var(--sidebar-border));display:flex;flex-direction:column;gap:2px}.ds-sidenav a{display:flex;align-items:center;gap:12px;height:36px;padding:0 12px;border-radius:6px;color:hsl(var(--muted-foreground));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;text-decoration:none;transition:background-color 150ms,color 150ms}.ds-sidenav a:hover{background:hsl(var(--secondary));color:hsl(var(--foreground))}.ds-sidenav a[aria-current=page]{background:hsl(var(--sidebar-accent));color:hsl(var(--sidebar-accent-foreground))}.ds-sidenav a:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Nova OS flutuante",
+      "kind": "custom",
+      "refersTo": "fab-new-order",
+      "description": "Ação principal no celular, na zona do polegar acima da barra inferior; sobreposição com sombra elevada.",
+      "html": "<a class=\"ds-fab\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>Nova OS</a>",
+      "css": ".ds-fab{display:inline-flex;align-items:center;gap:6px;height:48px;padding:0 20px;border-radius:9999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font:500 14px/20px 'Inter Variable',system-ui,sans-serif;text-decoration:none;box-shadow:var(--shadow-lg);transition:background-color 150ms}.ds-fab:hover{background:hsl(var(--primary)/.9)}.ds-fab:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px hsl(var(--ring))}"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Balcão Bem Arrumado",
+    "overview": "Service Flow Pro é o padrão da categoria executado com capricho: uma ferramenta de ordens de serviço que qualquer prestador reconhece de primeira, no nível de acabamento de Conta Azul/Bling, Linear e Jobber/Housecall Pro. Não há identidade temática. O diferencial está na clareza: superfícies brancas sobre um fundo cinza-frio claro, uma única cor de marca azul, e os cinco status da OS como o único lugar onde a cor fala alto.\n\nA densidade é de ferramenta de trabalho, não de painel de vitrine. Linhas de tabela de 56px, listas com divisórias de 1px, números alinhados em coluna, hierarquia feita por peso (500/600) dentro de uma escala curta, e não por tamanho. O tema escuro é de primeira classe e segue as mesmas regras em grafite azulado, com tokens próprios de texto onde os tons de botão não alcançam contraste.\n\nO sistema recusa o template de admin com cinco cards de KPI coloridos e a tela de detalhe que só oferece Imprimir e Editar. Na OS, a ação é mover o status: um botão primário com o próximo passo, desvios discretos, e a exclusão isolada no fim.",
+    "keyCharacteristics": [
+      "Uma cor de marca (azul) para ação primária, seleção, foco e links; nada mais saturado fora dos status.",
+      "Status sempre como pílula de fundo tingido, texto escuro do mesmo matiz e rótulo escrito.",
+      "Inter Variable com algarismos tabulares em todo número, data e valor.",
+      "Bordas de 1px e raio de 8px; sombra de verdade só no que flutua.",
+      "Celular primeiro: ação principal na zona do polegar, barra inferior de 5 itens."
+    ],
+    "rules": [
+      {
+        "name": "A Regra da Voz Única",
+        "body": "O azul de marca marca ação, seleção e foco, e mais nada. Nenhuma outra cor saturada entra na interface fora dos status e do vermelho de erro.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Rótulo",
+        "body": "Status nunca é só cor: é pílula `-bg` com texto `-fg` e o rótulo escrito (\"Em andamento\"), com um ponto no tom sólido. O tom sólido nunca vira fundo de texto.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Texto no Escuro",
+        "body": "No tema escuro, `text-primary` e `text-destructive` são remapeados globalmente para `dark-primary-text` e `dark-destructive-text`, porque os tons de botão não passam de 4,5:1 sobre o grafite. Texto colorido novo usa essas classes, não um tom inventado.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra dos Algarismos em Coluna",
+        "body": "Todo número de OS, data, quantidade e valor em BRL leva `.tabular` (`font-variant-numeric: tabular-nums`) para alinhar em coluna.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Peso, Não do Tamanho",
+        "body": "Dentro de uma seção, a hierarquia sobe de 400 para 500 para 600 na mesma escala de 12/14px. Tamanhos acima de 18px são reservados para números.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Polegar",
+        "body": "No celular, a ação principal fica fixa logo acima da barra inferior: \"Nova OS\" como botão flutuante nas listas, e o próximo passo da OS numa barra de ações fixa no detalhe. A página reserva ~80px no fim para que nada fique coberto.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra da Linha Antes da Sombra",
+        "body": "Superfícies no fluxo da página se definem por borda de 1px, nunca por sombra. Sombra perceptível significa \"isto flutua\", e só sobreposições a usam.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar `primary` só em ação primária, seleção, foco e links; um botão primário por contexto.",
+      "**Do** mostrar status com o `StatusBadge` (pílula `-bg`, texto `-fg`, ponto sólido, rótulo escrito).",
+      "**Do** aplicar `.tabular` a todo número de OS, data, quantidade e valor.",
+      "**Do** separar superfícies com borda de 1px e divisórias; reservar `--shadow-md`/`--shadow-lg` para o que flutua.",
+      "**Do** dar 44px a alvos de toque no celular e fixar a ação principal na zona do polegar, reservando espaço no fim da página.",
+      "**Do** isolar a ação destrutiva no fim da tela, separada por borda, e confirmá-la em diálogo.",
+      "**Do** usar `text-primary`/`text-destructive` para texto colorido, para herdar o remapeamento do tema escuro."
+    ],
+    "donts": [
+      "**Don't** montar fileiras de cards de KPI com fundos coloridos; o resumo é um card segmentado com pontos de status.",
+      "**Don't** usar o tom sólido de status como fundo de texto nem comunicar status só por cor.",
+      "**Don't** usar cores cruas da paleta do Tailwind (`text-red-500`, `bg-green-100`); toda cor vem de um token.",
+      "**Don't** dar elevação de hover a cards em repouso (`hover:shadow-soft`) nem animar a entrada de linhas de lista.",
+      "**Don't** usar vidro ou desfoque de fundo em superfícies do fluxo.",
+      "**Don't** levar a marca do produto ao recibo impresso: ele é monocromático e carrega a identidade do negócio do usuário."
+    ]
+  }
+}
