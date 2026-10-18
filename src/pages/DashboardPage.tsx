@@ -1,369 +1,195 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { TrendingUp, ClipboardList, Users, LogOut, Wrench, Clock, Activity } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Plus, ChevronRight } from "lucide-react";
+import { NewOrderFab } from "@/components/layout/NewOrderFab";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useClients } from "@/hooks/useClients";
-import { useServices } from "@/hooks/useServices";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useOrders } from "@/hooks/useOrders";
+import { formatCurrency, formatOrderNumber } from "@/lib/formatters";
+import { STATUS_PLURAL, isOverdue } from "@/lib/orderStatus";
+import { OrderStatus, ServiceOrder } from "@/types";
+import { cn } from "@/lib/utils";
 
-type FilterPeriod = "day" | "week" | "month";
+const SUMMARY: { status: OrderStatus; dot: string }[] = [
+  { status: "start", dot: "bg-status-start" },
+  { status: "progress", dot: "bg-status-progress" },
+  { status: "waiting", dot: "bg-status-waiting" },
+  { status: "finished", dot: "bg-status-finished" },
+];
+
+const compactCurrency = (value: number) =>
+  value >= 1000 ? `${(value / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil` : String(value);
+
+const shortDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", "");
+
+// OS que pedem atenção: em andamento primeiro, depois as agendadas mais próximas.
+const attentionRank = (o: ServiceOrder) => (o.status === "progress" ? 0 : o.status === "waiting" ? 1 : 2);
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const [period, setPeriod] = useState<FilterPeriod>("month");
-
-  const { clients } = useClients();
-  const { services } = useServices();
   const { orders } = useOrders();
 
-  const handleLogout = () => {
-    navigate("/");
-  };
-
-  // --- Metrics Calculations ---
-
-  const metrics = useMemo(() => {
-    const totalClients = clients?.length || 0;
-    const totalServices = services?.length || 0;
-    const totalOrders = orders?.length || 0;
-
-    const pendingOrders = orders?.filter(o => o.status === "start" || o.status === "waiting").length || 0;
-    const inProgressOrders = orders?.filter(o => o.status === "progress").length || 0;
-
-    // Revenue for the current month
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const currentMonthRevenue = orders
-      ?.filter(o => {
-        const d = new Date(o.date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && o.status !== "cancelled";
-      })
-      .reduce((acc, o) => acc + o.total, 0) || 0;
-
-    return {
-      totalClients,
-      totalServices,
-      totalOrders,
-      pendingOrders,
-      inProgressOrders,
-      currentMonthRevenue
-    };
-  }, [clients, services, orders]);
-
-  // --- Chart Data (Last 6 Months) ---
-
-  const chartData = useMemo(() => {
-    if (!orders) return [];
-
-    const data = [];
-    const now = new Date();
-
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' });
-      const monthIndex = d.getMonth();
-      const year = d.getFullYear();
-
-      const monthlyTotal = orders
-        .filter(o => {
-          const orderDate = new Date(o.date);
-          return orderDate.getMonth() === monthIndex && orderDate.getFullYear() === year && o.status !== "cancelled";
-        })
-        .reduce((acc, o) => acc + o.total, 0);
-
-      data.push({
-        month: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
-        value: monthlyTotal
-      });
-    }
-    return data;
+  const counts = useMemo(() => {
+    const result: Record<OrderStatus, number> = { start: 0, progress: 0, waiting: 0, finished: 0, cancelled: 0 };
+    orders.forEach((o) => result[o.status]++);
+    return result;
   }, [orders]);
 
-  // --- Top Clients ---
+  const attention = useMemo(
+    () =>
+      orders
+        .filter((o) => o.status === "start" || o.status === "progress" || o.status === "waiting")
+        .sort((a, b) => {
+          const rank = attentionRank(a) - attentionRank(b);
+          if (rank !== 0) return rank;
+          return new Date(a.scheduledAt ?? a.date).getTime() - new Date(b.scheduledAt ?? b.date).getTime();
+        })
+        .slice(0, 6),
+    [orders],
+  );
 
-  const topClients = useMemo(() => {
-    if (!orders || !clients) return [];
-
-    // Aggregate spend per client
-    const clientSpend: Record<string, { id: string; name: string; orders: number; total: number }> = {};
-
-    orders.forEach(order => {
-      if (order.status === "cancelled") return;
-
-      if (!clientSpend[order.clientId]) {
-        const clientName = clients.find(c => c.id === order.clientId)?.name || order.clientName || "Desconhecido";
-        clientSpend[order.clientId] = {
-          id: order.clientId,
-          name: clientName,
-          orders: 0,
-          total: 0
-        };
-      }
-
-      clientSpend[order.clientId].orders += 1;
-      clientSpend[order.clientId].total += order.total;
+  // Valor das OS abertas em cada um dos últimos 6 meses, sem as canceladas.
+  const revenue = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+      const value = orders
+        .filter((o) => {
+          const date = new Date(o.date);
+          return date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear() && o.status !== "cancelled";
+        })
+        .reduce((acc, o) => acc + o.total, 0);
+      const label = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+      return { month: label.charAt(0).toUpperCase() + label.slice(1), value };
     });
+  }, [orders]);
 
-    // Convert to array and sort
-    return Object.values(clientSpend)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
-  }, [orders, clients]);
-
-
-  // Stats for desktop view
-  const desktopStats = [
-    { label: "Total de Clientes", value: metrics.totalClients.toString(), icon: Users, color: "text-primary" },
-    { label: "Serviços Cadastrados", value: metrics.totalServices.toString(), icon: Wrench, color: "text-emerald-500" },
-    { label: "Ordens de Serviço", value: metrics.totalOrders.toString(), icon: ClipboardList, color: "text-blue-500" },
-    { label: "Pendentes", value: metrics.pendingOrders.toString(), icon: Clock, color: "text-amber-500" },
-    { label: "Em Andamento", value: metrics.inProgressOrders.toString(), icon: Activity, color: "text-violet-500" },
-  ];
+  const thisMonth = revenue[revenue.length - 1]?.value ?? 0;
+  const lastMonth = revenue[revenue.length - 2]?.value ?? 0;
+  const monthName = new Date().toLocaleDateString("pt-BR", { month: "long" });
 
   return (
     <div className="page-container bg-background">
-      {/* Desktop Header */}
-      <DesktopHeader title="Dashboard" />
-
-      {/* Mobile TopNav */}
       <div className="lg:hidden">
-        <TopNav
-          title="Dashboard"
-          rightAction={
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-          }
-        />
+        <TopNav title="Início" />
       </div>
+      <DesktopHeader
+        title="Início"
+        actions={
+          <Button asChild className="h-9">
+            <Link to="/ordens/nova">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Nova OS
+            </Link>
+          </Button>
+        }
+      />
 
-      {/* Desktop Content */}
-      <div className="hidden lg:block p-6 space-y-6">
-        {/* Desktop Title Section */}
-        <div className="animate-fade-in">
-          <h2 className="text-2xl font-bold text-foreground">Visão Geral</h2>
-          <p className="text-muted-foreground">Acompanhe suas ordens de serviço e estatísticas</p>
-        </div>
-
-        {/* Desktop Stats Cards */}
-        <div className="grid grid-cols-5 gap-4 animate-slide-up">
-          {desktopStats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className="card-elevated p-4"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
-                <stat.icon className={cn("w-5 h-5", stat.color)} />
-              </div>
-              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-            </div>
+      <div className="content-container space-y-4 lg:space-y-6">
+        {/* Resumo por status: cada número abre a lista filtrada */}
+        <nav aria-label="Ordens por status" className="card-elevated grid grid-cols-2 lg:grid-cols-4 divide-border [&>*]:border-border max-lg:[&>*:nth-child(odd)]:border-r max-lg:[&>*:nth-child(-n+2)]:border-b lg:divide-x">
+          {SUMMARY.map(({ status, dot }) => (
+            <Link key={status} to={`/ordens?status=${status}`} className="group p-4 lg:p-5 hover:bg-muted/60 transition-colors">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span aria-hidden="true" className={cn("w-2 h-2 rounded-full", dot)} />
+                {STATUS_PLURAL[status]}
+              </span>
+              <span className="block mt-1 text-2xl font-semibold tracking-tight text-foreground tabular">{counts[status]}</span>
+            </Link>
           ))}
-        </div>
+        </nav>
 
-        {/* Desktop Charts & Tables - We can reuse the mobile layout components or build specific desktop specific ones */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Chart */}
-          <div className="card-elevated p-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-            <h3 className="text-lg font-semibold text-foreground mb-6">Faturamento (últimos 6 meses)</h3>
-            <div className="h-64">
+        <div className="grid lg:grid-cols-5 gap-4 lg:gap-6 items-start">
+          {/* OS que pedem atenção */}
+          <section className="card-elevated lg:col-span-3">
+            <div className="flex items-center justify-between px-4 h-12 border-b border-border">
+              <h2 className="text-sm font-semibold text-foreground">Em aberto</h2>
+              <Link to="/ordens" className="text-sm font-medium text-primary hover:underline underline-offset-4">Ver todas</Link>
+            </div>
+            {attention.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-sm text-muted-foreground">Nenhuma OS aberta, em andamento ou aguardando.</p>
+                <Button asChild variant="outline" className="mt-3 h-9">
+                  <Link to="/ordens/nova">Abrir uma OS</Link>
+                </Button>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {attention.map((order) => (
+                  <li key={order.id}>
+                    <Link to={`/ordens/${order.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/60 transition-colors">
+                      <span className="w-14 text-sm font-semibold text-foreground tabular">{formatOrderNumber(order)}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-sm font-medium text-foreground truncate">{order.clientName}</span>
+                        <span className="block text-xs text-muted-foreground truncate">
+                          {order.scheduledAt ? (
+                            <span className={isOverdue(order) ? "font-medium text-destructive" : undefined}>
+                              {isOverdue(order) ? "Atrasada" : "Agendada"} {shortDate(order.scheduledAt)}
+                            </span>
+                          ) : (
+                            `Aberta ${shortDate(order.date)}`
+                          )}
+                        </span>
+                      </span>
+                      <span className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        <span className="text-sm text-foreground tabular whitespace-nowrap">{formatCurrency(order.total)}</span>
+                        <StatusBadge status={order.status} />
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground hidden sm:block" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Faturamento */}
+          <section className="card-elevated lg:col-span-2 p-4 lg:p-5">
+            <h2 className="text-sm font-semibold text-foreground">Faturamento</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Valor das OS abertas no mês, sem as canceladas</p>
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-foreground tabular">{formatCurrency(thisMonth)}</p>
+            <p className="text-sm text-muted-foreground">
+              em {monthName}
+              {lastMonth > 0 && (
+                <> · {thisMonth >= lastMonth ? "+" : "−"}{Math.abs(Math.round(((thisMonth - lastMonth) / lastMonth) * 100))}% sobre o mês anterior</>
+              )}
+            </p>
+            {revenue.every((r) => r.value === 0) ? (
+              <p className="mt-4 h-48 flex items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground">
+                Sem OS nos últimos 6 meses
+              </p>
+            ) : (
+            <div className="h-48 mt-4 text-muted-foreground" role="img" aria-label={`Faturamento dos últimos 6 meses: ${revenue.map((r) => `${r.month} ${formatCurrency(r.value)}`).join(", ")}`}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorValueDesktop" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(196, 37%, 24%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(196, 37%, 24%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: "hsl(0, 0%, 45%)" }}
-                  />
-                  <YAxis
-                    hide
-                  />
+                <BarChart data={revenue} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor" }} />
+                  <YAxis width={52} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "currentColor" }} tickFormatter={compactCurrency} />
                   <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))" }}
                     contentStyle={{
-                      background: "hsl(0, 0%, 100%)",
-                      border: "1px solid hsl(0, 0%, 85%)",
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
-                      fontSize: "12px",
+                      fontSize: "13px",
+                      color: "hsl(var(--popover-foreground))",
                     }}
-                    formatter={(value: number) => [`R$ ${value.toLocaleString("pt-BR")}`, "Faturamento"]}
+                    formatter={(value: number) => [formatCurrency(value), "Faturamento"]}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="hsl(196, 37%, 24%)"
-                    strokeWidth={2}
-                    fill="url(#colorValueDesktop)"
-                  />
-                </AreaChart>
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-
-          {/* Top Clients */}
-          <div className="card-elevated animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            <div className="p-4 border-b border-border/50">
-              <h3 className="text-lg font-semibold text-foreground">Top Clientes (Total Gasto)</h3>
-            </div>
-            <div className="divide-y divide-border/50">
-              {topClients.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">Nenhum dado disponível</div>
-              ) : (
-                topClients.map((client, index) => (
-                  <div
-                    key={client.id}
-                    className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">{index + 1}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{client.name}</p>
-                        <p className="text-xs text-muted-foreground">{client.orders} ordens</p>
-                      </div>
-                    </div>
-                    <p className="text-sm font-semibold text-foreground">
-                      R$ {client.total.toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-                )))}
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Mobile Content */}
-      <div className="lg:hidden content-container space-y-6">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-4 animate-slide-up">
-          <div className="card-elevated p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-xs font-medium">Total do mês</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">
-              R$ {metrics.currentMonthRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-
-          <div className="card-elevated p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <ClipboardList className="w-4 h-4" />
-              <span className="text-xs font-medium">Qtd. de ordens</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">{metrics.totalOrders}</p>
-          </div>
-        </div>
-
-        {/* Chart */}
-        <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Faturamento (últimos 6 meses)</h3>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorValueMobile" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(196, 37%, 24%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(196, 37%, 24%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(0, 0%, 45%)" }}
-                />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(0, 0%, 100%)",
-                    border: "1px solid hsl(0, 0%, 85%)",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value: number) => [`R$ ${value.toLocaleString("pt-BR")}`, "Faturamento"]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="hsl(196, 37%, 24%)"
-                  strokeWidth={2}
-                  fill="url(#colorValueMobile)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Top Clients */}
-        <div className="card-elevated animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <div className="p-4 border-b border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">Top Clientes</h3>
-              </div>
-              <div className="flex gap-1 p-1 bg-secondary rounded-lg">
-                {(["day", "week", "month"] as FilterPeriod[]).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriod(p)}
-                    className={cn(
-                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
-                      period === p
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {p === "day" ? "Dia" : p === "week" ? "Semana" : "Mês"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-border/50">
-            {topClients.map((client, index) => (
-              <div
-                key={client.id}
-                className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary">{index + 1}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">{client.orders} ordens</p>
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-foreground">
-                  R$ {client.total.toLocaleString("pt-BR")}
-                </p>
-              </div>
-            ))}
-          </div>
+            )}
+          </section>
         </div>
       </div>
+
+      <div className="lg:hidden h-16" aria-hidden="true" />
+      <NewOrderFab />
     </div>
   );
 }

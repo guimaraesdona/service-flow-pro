@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Camera, Plus, Minus, X } from "lucide-react";
+import { Plus, Minus, X, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,23 +16,10 @@ import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
 import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
-import { useRef } from "react";
 import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
+import { formatOrderNumber, formatCurrency } from "@/lib/formatters";
 import { ImageUploader } from "@/components/form/ImageUploader";
-
-const statusOptions: { value: OrderStatus; label: string }[] = [
-  { value: "start", label: "Iniciar" },
-  { value: "progress", label: "Em andamento" },
-  { value: "waiting", label: "Aguardando" },
-  { value: "cancelled", label: "Cancelado" },
-  { value: "finished", label: "Finalizado" },
-];
-
-const priorityOptions: { value: OrderPriority; label: string }[] = [
-  { value: "low", label: "Baixa" },
-  { value: "normal", label: "Normal" },
-  { value: "high", label: "Alta" },
-];
+import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/lib/orderStatus";
 
 export default function EditOrderPage() {
   const navigate = useNavigate();
@@ -41,7 +29,6 @@ export default function EditOrderPage() {
   const { services: availableServices } = useServices();
   const { deleteImage } = useStorage();
   const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("order");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const order = orders?.find(o => o.id === id);
 
@@ -60,6 +47,8 @@ export default function EditOrderPage() {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
+  // Remonta o select de serviço depois de cada escolha (ver NewOrderPage).
+  const [servicePickerKey, setServicePickerKey] = useState(0);
 
   const validateField = (field: string, value: string | any[]) => {
     let error = "";
@@ -122,10 +111,14 @@ export default function EditOrderPage() {
   if (!order) {
     return (
       <div className="page-container bg-background">
-        <TopNav title="Editar Ordem" showBack />
+        <TopNav title="Editar OS" showBack />
         <div className="content-container">
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">Ordem não encontrada</p>
+          <div className="card-elevated p-10 text-center">
+            <p className="font-medium text-foreground">Ordem não encontrada</p>
+            <p className="text-sm text-muted-foreground mt-1">Ela pode ter sido excluída.</p>
+            <Button asChild variant="outline" className="mt-4 h-9">
+              <Link to="/ordens">Ver todas as ordens</Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -179,6 +172,13 @@ export default function EditOrderPage() {
 
 
 
+  // Leva o usuário ao campo com erro, mesmo que esteja fora da tela.
+  const focusField = (fieldId: string) => {
+    const el = document.getElementById(fieldId);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+    el?.focus({ preventScroll: true });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -186,11 +186,9 @@ export default function EditOrderPage() {
     const isServicesValid = validateField("services", services);
 
     if (!isClientValid || !isServicesValid) {
-      toast({
-        title: "Campos inválidos",
-        description: "Verifique os erros antes de continuar.",
-        variant: "destructive"
-      });
+      const missing = [!isClientValid && "cliente", !isServicesValid && "serviço"].filter(Boolean).join(" e ");
+      toast({ title: `Falta ${missing}`, variant: "destructive" });
+      focusField(!isClientValid ? "order-client" : "order-service");
       return;
     }
 
@@ -213,8 +211,7 @@ export default function EditOrderPage() {
         setCustomFieldErrors(newCustomErrors);
 
         toast({
-            title: "Campos obrigatórios",
-            description: `Preencha os campos: ${missingFields.map(f => f.name).join(", ")}`,
+            title: `Falta preencher: ${missingFields.map(f => f.name).join(", ")}`,
             variant: "destructive"
         });
         return;
@@ -253,10 +250,7 @@ export default function EditOrderPage() {
         await deleteImage(order.imageUrl);
       }
 
-      toast({
-        title: "Ordem atualizada!",
-        description: "Ordem de serviço atualizada com sucesso.",
-      });
+      toast({ title: `${formatOrderNumber(order)} atualizada` });
       navigate(`/ordens/${id}`);
     } catch (error: any) {
       toast({
@@ -267,267 +261,233 @@ export default function EditOrderPage() {
     }
   };
 
+  const fieldError = (message?: string) =>
+    message ? <p role="alert" className="text-xs font-medium text-destructive">{message}</p> : null;
+
   return (
     <div className="page-container bg-background">
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <TopNav title={`Editar Ordem #${order.number || order.id.slice(0, 4)}`} showBack />
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        <DesktopHeader title={`Editar Ordem de Serviço #${order.number || order.id.slice(0, 4)}`} />
-      </div>
+      <div className="lg:hidden"><TopNav title={`Editar OS ${formatOrderNumber(order)}`} showBack /></div>
+      <DesktopHeader title={`Editar ordem de serviço ${formatOrderNumber(order)}`} />
 
       <div className="content-container">
-        <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
-          {/* Left Column */}
-          <div className="space-y-5">
-            {/* Image */}
-            <div className="flex justify-center mb-6 lg:justify-start">
-              <ImageUploader
-                value={imageUrl}
-                onChange={handleImageChange}
-              />
-            </div>
-
-            {/* Status & Priority */}
-            <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4 lg:grid lg:grid-cols-5 lg:gap-6 lg:items-start lg:space-y-0">
+          {/* O que é a OS: cliente e serviços */}
+          <div className="lg:col-span-3 space-y-4">
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Cliente</h2>
               <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={(value) => setStatus(value as OrderStatus)}>
-                  <SelectTrigger className="input-field">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Prioridade</Label>
-                <Select value={priority} onValueChange={(value) => setPriority(value as OrderPriority)}>
-                  <SelectTrigger className="input-field">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorityOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Client */}
-            <div className="space-y-2">
-              <Label>Cliente *</Label>
-              <Select
-                value={selectedClient}
-                onValueChange={(v) => {
+                <Label htmlFor="order-client">Cliente *</Label>
+                <Select
+                  value={selectedClient}
+                  onValueChange={(v) => {
                     setSelectedClient(v);
                     setSelectedAddress("");
                     if (errors.selectedClient) validateField("selectedClient", v);
-                }}
-              >
-                <SelectTrigger className={`input-field ${errors.selectedClient ? "border-red-500 focus:ring-red-500" : ""}`}>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.selectedClient && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.selectedClient}</p>}
-            </div>
-
-            {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
-              <div className="space-y-2">
-                <Label>Endereço</Label>
-                <Select value={selectedAddress} onValueChange={setSelectedAddress}>
-                  <SelectTrigger className="input-field"><SelectValue placeholder="Selecione o endereço" /></SelectTrigger>
-                  <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.street}, {a.number}</SelectItem>)}</SelectContent>
+                  }}
+                >
+                  <SelectTrigger id="order-client" aria-invalid={!!errors.selectedClient} className={`input-field ${errors.selectedClient ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
+                  <SelectContent>{clients?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
+                {fieldError(errors.selectedClient)}
+                {clients && clients.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum cliente cadastrado.{" "}
+                    <Link to="/clientes/novo" className="font-medium text-primary underline underline-offset-4">Cadastrar cliente</Link>
+                  </p>
+                )}
               </div>
-            )}
 
-            {/* Scheduled Date */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Data Agendamento</Label>
-                <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} className="input-field" />
-              </div>
-              <div className="space-y-2">
-                <Label>Hora</Label>
-                <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="input-field" />
-              </div>
-            </div>
-
-            {/* Add Services */}
-            <div className="space-y-2">
-              <Label>Adicionar Serviços *</Label>
-              <Select onValueChange={addService}>
-                <SelectTrigger className={`input-field ${errors.services ? "border-red-500 focus:ring-red-500" : ""}`}>
-                  <SelectValue placeholder="Selecione um serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableServices?.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name} - R$ {service.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.services && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.services}</p>}
-            </div>
-
-            {/* Selected Services */}
-            {services.length > 0 && (
-              <div className="space-y-2">
-                <Label>Serviços Selecionados</Label>
+              {selectedClientData && selectedClientData.addresses && selectedClientData.addresses.length > 0 && (
                 <div className="space-y-2">
-                  {services.map((service, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{service.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                  <Label htmlFor="order-address">Endereço do serviço</Label>
+                  <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+                    <SelectTrigger id="order-address" className="input-field"><SelectValue placeholder="Selecione o endereço" /></SelectTrigger>
+                    <SelectContent>{selectedClientData.addresses.map((a) => <SelectItem key={a.id} value={a.id}>{a.label} - {a.street}, {a.number}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
+            </section>
+
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Serviços</h2>
+              <div className="space-y-2">
+                <Label htmlFor="order-service">Adicionar serviço *</Label>
+                <Select
+                  key={servicePickerKey}
+                  onValueChange={(v) => {
+                    addService(v);
+                    setServicePickerKey((k) => k + 1);
+                    if (errors.services) setErrors((prev) => ({ ...prev, services: "" }));
+                  }}
+                >
+                  <SelectTrigger id="order-service" aria-invalid={!!errors.services} className={`input-field ${errors.services ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Escolha do catálogo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableServices?.filter((s) => s.active !== false).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} · {formatCurrency(s.price)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldError(errors.services)}
+                {availableServices && availableServices.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    O catálogo está vazio.{" "}
+                    <Link to="/servicos/novo" className="font-medium text-primary underline underline-offset-4">Cadastrar serviço</Link>
+                  </p>
+                )}
+              </div>
+
+              {services.length > 0 && (
+                <ul className="divide-y divide-border border border-border rounded-md">
+                  {services.map((s) => (
+                    <li key={s.name} className="flex items-center gap-3 p-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{s.name}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
                           <span className="text-xs text-muted-foreground">R$</span>
                           <Input
                             type="number"
+                            inputMode="decimal"
                             step="0.01"
                             min="0"
-                            className="h-7 w-24 text-xs bg-background/50 border-border/50"
-                            value={service.price}
-                            onChange={(e) => updatePrice(service.name, parseFloat(e.target.value) || 0)}
+                            aria-label={`Preço de ${s.name}`}
+                            className="h-8 w-24 text-sm tabular"
+                            value={s.price}
+                            onChange={(e) => updatePrice(s.name, parseFloat(e.target.value) || 0)}
                           />
-                          <span className="text-xs text-muted-foreground">x {service.quantity}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(service.name, -1)}
-                          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-6 text-center text-sm font-medium">{service.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(service.name, 1)}
-                          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeService(service.name)}
-                          className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors ml-2"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center gap-1">
+                        <Button type="button" size="icon" variant="outline" className="h-9 w-9" aria-label={`Diminuir ${s.name}`} onClick={() => updateQuantity(s.name, -1)}><Minus className="w-4 h-4" /></Button>
+                        <span className="w-7 text-center text-sm font-medium tabular" aria-label="Quantidade">{s.quantity}</span>
+                        <Button type="button" size="icon" variant="outline" className="h-9 w-9" aria-label={`Aumentar ${s.name}`} onClick={() => updateQuantity(s.name, 1)}><Plus className="w-4 h-4" /></Button>
+                        <Button type="button" size="icon" variant="ghost" className="h-9 w-9 ml-2 text-muted-foreground hover:text-destructive" aria-label={`Remover ${s.name}`} onClick={() => removeService(s.name)}><X className="w-4 h-4" /></Button>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-5">
-            {/* Description */}
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea
-                placeholder="Descreva o serviço..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
-              />
-            </div>
-
-            {/* Observations */}
-            <div className="space-y-2">
-              <Label>Observações</Label>
-              <Textarea
-                placeholder="Anotações adicionais..."
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
-                className="min-h-20 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
-              />
-            </div>
-
-            {/* Discount */}
-            <div className="space-y-2">
-              <Label>Desconto</Label>
-              <div className="flex gap-2">
-                <Select value={discountType} onValueChange={(v) => setDiscountType(v as "fixed" | "percentage")}>
-                   <SelectTrigger className="w-[110px] input-field">
-                    <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="fixed">R$ (Real)</SelectItem>
-                     <SelectItem value="percentage">% (Porc.)</SelectItem>
-                   </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0,00"
-                  value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
-                  className="input-field flex-1"
-                />
-              </div>
-            </div>
-
-            {/* Custom Fields */}
-            <CustomFieldsRenderer
-              entityType="order"
-              values={customFieldValues}
-              onValuesChange={setCustomFieldValues}
-              errors={customFieldErrors}
-            />
-
-            {/* Total */}
-            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>R$ {subtotal.toFixed(2)}</span>
-              </div>
-              {discountValue > 0 && (
-                <div className="flex justify-between text-sm text-status-finished">
-                  <span>Desconto {discountType === "percentage" && `(${discount}%)`}</span>
-                  <span>- R$ {discountValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
+                </ul>
               )}
-              <div className="flex justify-between font-bold text-lg pt-2 border-t border-primary/20">
-                <span>Total</span>
-                <span className="text-primary">R$ {total.toFixed(2)}</span>
-              </div>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full btn-primary mt-6"
-              disabled={updateOrder.isPending}
-            >
-              {updateOrder.isPending ? "Salvando..." : "Salvar"}
-            </Button>
+              <dl className="space-y-1 text-sm tabular pt-1">
+                {discountValue > 0 && (
+                  <>
+                    <div className="flex justify-between text-muted-foreground">
+                      <dt>Subtotal</dt>
+                      <dd>{formatCurrency(subtotal)}</dd>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <dt>Desconto {discountType === "percentage" && `(${discount}%)`}</dt>
+                      <dd>− {formatCurrency(discountValue)}</dd>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between text-base font-semibold text-foreground lg:hidden">
+                  <dt>Total</dt>
+                  <dd>{formatCurrency(total)}</dd>
+                </div>
+              </dl>
+            </section>
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Detalhes</h2>
+              <div className="space-y-2">
+                <Label htmlFor="order-description">Descrição</Label>
+                <Textarea id="order-description" placeholder="O que precisa ser feito" value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-20 resize-none" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="order-observations">Observações</Label>
+                <Textarea id="order-observations" placeholder="Anotações internas" value={observations} onChange={(e) => setObservations(e.target.value)} className="min-h-20 resize-none" />
+              </div>
+              <CustomFieldsRenderer entityType="order" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
+            </section>
           </div>
+
+          {/* Como e quando */}
+          <div className="lg:col-span-2 space-y-4">
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Andamento</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="order-status">Status</Label>
+                  <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
+                    <SelectTrigger id="order-status" className="input-field"><SelectValue /></SelectTrigger>
+                    <SelectContent>{STATUS_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="order-priority">Prioridade</Label>
+                  <Select value={priority} onValueChange={(v) => setPriority(v as OrderPriority)}>
+                    <SelectTrigger id="order-priority" className="input-field"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>{PRIORITY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="order-date">Agendar para</Label>
+                  <Input id="order-date" type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} className="input-field" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="order-time">Hora</Label>
+                  <Input id="order-time" type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="input-field" />
+                </div>
+              </div>
+            </section>
+
+
+            <Collapsible className="card-elevated">
+              <CollapsibleTrigger className="group w-full flex items-center justify-between p-4 lg:px-5 text-sm font-semibold text-foreground">
+                Desconto e foto
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" aria-hidden="true" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 lg:px-5 pb-4 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="order-discount">Desconto</Label>
+                  <div className="flex gap-2">
+                    <Select value={discountType} onValueChange={(v) => setDiscountType(v as "fixed" | "percentage")}>
+                      <SelectTrigger aria-label="Tipo de desconto" className="w-[96px] input-field"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">R$</SelectItem>
+                        <SelectItem value="percentage">%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input id="order-discount" type="number" inputMode="decimal" step="0.01" min="0" placeholder="0,00" value={discount} onChange={(e) => setDiscount(e.target.value)} className="input-field flex-1 tabular" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Foto</Label>
+                  <ImageUploader value={imageUrl} onChange={handleImageChange} />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Desktop: total e envio acompanham a rolagem */}
+            <div className="hidden lg:block sticky top-20 card-elevated p-5 space-y-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-xl font-semibold text-foreground tabular">{formatCurrency(total)}</span>
+              </div>
+              <Button type="submit" className="w-full btn-primary" disabled={updateOrder.isPending}>
+                {updateOrder.isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Celular: total e envio sempre à mão */}
+          <div className="lg:hidden fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 bg-card border-t border-border px-4 py-3">
+            <div className="max-w-lg mx-auto flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-base font-semibold text-foreground tabular">{formatCurrency(total)}</p>
+              </div>
+              <Button type="submit" className="h-11 px-6" disabled={updateOrder.isPending}>
+                {updateOrder.isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            </div>
+          </div>
+          <div className="lg:hidden h-20" aria-hidden="true" />
         </form>
       </div>
     </div>

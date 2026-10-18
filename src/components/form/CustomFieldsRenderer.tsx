@@ -105,7 +105,7 @@ export function CustomFieldsRenderer({
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || `Digite ${field.name.toLowerCase()}`}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
           />
         );
       case "email":
@@ -116,7 +116,7 @@ export function CustomFieldsRenderer({
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || "exemplo@email.com"}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
           />
         );
       case "phone":
@@ -127,7 +127,7 @@ export function CustomFieldsRenderer({
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || "(00) 00000-0000"}
             maxLength={15}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
           />
         );
       case "document":
@@ -138,7 +138,7 @@ export function CustomFieldsRenderer({
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || "000.000.000-00"}
             maxLength={18}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
           />
         );
       case "zip":
@@ -149,7 +149,7 @@ export function CustomFieldsRenderer({
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || "00000-000"}
             maxLength={9}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
             />
         );
       case "plate":
@@ -160,7 +160,7 @@ export function CustomFieldsRenderer({
             onBlur={() => validateField(field, value)}
             placeholder={field.placeholder || "ABC-1234"}
             maxLength={8}
-            className={`input-field ${errors[field.id] ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+            className={`input-field ${errors[field.id] ? "border-destructive" : ""}`}
           />
         );
       case "number":
@@ -233,7 +233,7 @@ export function CustomFieldsRenderer({
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
             placeholder={field.placeholder || `Digite ${field.name.toLowerCase()}`}
-            className="w-full min-h-20 p-3 bg-secondary/50 border-0 rounded-md focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+            className="w-full min-h-20 px-3 py-2 text-sm bg-card border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           />
         );
       case "checkbox":
@@ -255,9 +255,6 @@ export function CustomFieldsRenderer({
 
   return (
     <div className="space-y-4">
-      <Label className="text-sm font-medium text-muted-foreground">
-        Campos Personalizados
-      </Label>
       <div className="space-y-3">
         {fields.map((field) => (
           <div key={field.id} className="space-y-2">
@@ -266,7 +263,7 @@ export function CustomFieldsRenderer({
               {field.required && <span className="text-destructive">*</span>}
             </Label>
             {renderFieldInput(field as any)}
-            {errors[field.id] && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors[field.id]}</p>}
+            {errors[field.id] && <p role="alert" className="text-xs font-medium text-destructive">{errors[field.id]}</p>}
           </div>
         ))}
       </div>

@@ -5,11 +5,11 @@ import type { OrderStatus } from "@/types";
 
 describe("StatusBadge", () => {
   const casos: Array<[OrderStatus, string]> = [
-    ["start", "Iniciar"],
+    ["start", "Aberta"],
     ["progress", "Em andamento"],
     ["waiting", "Aguardando"],
-    ["cancelled", "Cancelado"],
-    ["finished", "Finalizado"],
+    ["cancelled", "Cancelada"],
+    ["finished", "Finalizada"],
   ];
 
   it.each(casos)("renderiza o rótulo em português para %s", (status, label) => {
@@ -19,11 +19,11 @@ describe("StatusBadge", () => {
 
   it("aplica a cor correspondente ao status", () => {
     render(<StatusBadge status="finished" />);
-    expect(screen.getByText("Finalizado")).toHaveClass("text-status-finished");
+    expect(screen.getByText("Finalizada")).toHaveClass("text-status-finished-fg");
   });
 
   it("mescla a className recebida por prop", () => {
     render(<StatusBadge status="start" className="minha-classe" />);
-    expect(screen.getByText("Iniciar")).toHaveClass("minha-classe");
+    expect(screen.getByText("Aberta")).toHaveClass("minha-classe");
   });
 });

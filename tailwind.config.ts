@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["'League Spartan'", "system-ui", "sans-serif"],
+        sans: ["'Inter Variable'", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -64,13 +64,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        status: {
-          start: "hsl(var(--status-start))",
-          progress: "hsl(var(--status-progress))",
-          waiting: "hsl(var(--status-waiting))",
-          cancelled: "hsl(var(--status-cancelled))",
-          finished: "hsl(var(--status-finished))",
-        },
+        status: Object.fromEntries(
+          ["start", "progress", "waiting", "cancelled", "finished"].map((status) => [
+            status,
+            {
+              DEFAULT: `hsl(var(--status-${status}))`,
+              fg: `hsl(var(--status-${status}-fg))`,
+              bg: `hsl(var(--status-${status}-bg))`,
+            },
+          ]),
+        ),
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,31 +1,29 @@
 import { cn } from "@/lib/utils";
 import { OrderStatus } from "@/types";
+import { STATUS_LABELS } from "@/lib/orderStatus";
 
 interface StatusBadgeProps {
   status: OrderStatus;
   className?: string;
 }
 
-const statusConfig: Record<OrderStatus, { label: string; className: string }> = {
-  start: { label: "Iniciar", className: "bg-status-start/15 text-status-start border-status-start/30" },
-  progress: { label: "Em andamento", className: "bg-status-progress/15 text-status-progress border-status-progress/30" },
-  waiting: { label: "Aguardando", className: "bg-status-waiting/15 text-status-waiting border-status-waiting/30" },
-  cancelled: { label: "Cancelado", className: "bg-status-cancelled/15 text-status-cancelled border-status-cancelled/30" },
-  finished: { label: "Finalizado", className: "bg-status-finished/15 text-status-finished border-status-finished/30" },
+// Fundo tingido com texto escuro do mesmo matiz (contraste AA) e um ponto no
+// tom sólido; o rótulo sempre aparece, a cor nunca carrega o sentido sozinha.
+const statusClasses: Record<OrderStatus, { badge: string; dot: string }> = {
+  start: { badge: "bg-status-start-bg text-status-start-fg", dot: "bg-status-start" },
+  progress: { badge: "bg-status-progress-bg text-status-progress-fg", dot: "bg-status-progress" },
+  waiting: { badge: "bg-status-waiting-bg text-status-waiting-fg", dot: "bg-status-waiting" },
+  cancelled: { badge: "bg-status-cancelled-bg text-status-cancelled-fg", dot: "bg-status-cancelled" },
+  finished: { badge: "bg-status-finished-bg text-status-finished-fg", dot: "bg-status-finished" },
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status];
+  const classes = statusClasses[status];
 
   return (
-    <span
-      className={cn(
-        "status-badge border whitespace-nowrap justify-center leading-none py-0 pt-[3px] pb-[1px]",
-        config.className,
-        className
-      )}
-    >
-      {config.label}
+    <span className={cn("status-badge whitespace-nowrap", classes.badge, className)}>
+      <span aria-hidden="true" className={cn("w-1.5 h-1.5 rounded-full", classes.dot)} />
+      {STATUS_LABELS[status]}
     </span>
   );
 }

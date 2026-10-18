@@ -64,8 +64,8 @@ export default function ServiceDetailPage() {
         {/* Price */}
         <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-status-finished/20 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-status-finished" />
+            <div className="w-10 h-10 rounded-lg bg-status-finished-bg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-status-finished-fg" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Valor base</p>

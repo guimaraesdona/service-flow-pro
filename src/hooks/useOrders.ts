@@ -144,6 +144,22 @@ export function useOrders() {
         },
     });
 
+    // Troca só o status. O updateOrder regrava todos os campos (e zera
+    // custom_fields quando não recebe nenhum), então não serve para isso.
+    const updateStatus = useMutation({
+        mutationFn: async ({ id, status }: { id: string; status: OrderStatus }) => {
+            const { error } = await supabase
+                .from("service_orders")
+                .update({ status })
+                .eq("id", id);
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+        },
+    });
+
     const deleteOrder = useMutation({
         mutationFn: async (id: string) => {
             const { error } = await supabase.from("service_orders").delete().eq("id", id);
@@ -160,6 +176,7 @@ export function useOrders() {
         error,
         createOrder,
         updateOrder,
+        updateStatus,
         deleteOrder,
     };
 }

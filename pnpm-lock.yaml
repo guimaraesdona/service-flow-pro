@@ -17,8 +17,8 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@18.3.1)
-      '@fontsource/league-spartan':
-        specifier: ^5.2.8
+      '@fontsource-variable/inter':
+        specifier: 5.2.8
         version: 5.2.8
       '@hookform/resolvers':
         specifier: ^3.10.0
@@ -714,8 +714,8 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@fontsource/league-spartan@5.2.8':
-    resolution: {integrity: sha512-83zacDd4BcvLwQ5JLjMg9s81MybTGKLsQJTihXSy4iQZEhMOofIvfhpe6udE7xk4l29NaQCK59DAzv1HfdIbLw==}
+  '@fontsource-variable/inter@5.2.8':
+    resolution: {integrity: sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ==}
 
   '@hookform/resolvers@3.10.0':
     resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
@@ -3588,7 +3588,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@fontsource/league-spartan@5.2.8': {}
+  '@fontsource-variable/inter@5.2.8': {}
 
   '@hookform/resolvers@3.10.0(react-hook-form@7.71.1(react@18.3.1))':
     dependencies:

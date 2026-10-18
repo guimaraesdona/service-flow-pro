@@ -7,20 +7,20 @@ interface AppLogoProps {
 
 export function AppLogo({ size = "md", className }: AppLogoProps) {
   const sizeClasses = {
-    sm: "w-8 h-8 rounded-md text-sm",
-    md: "w-10 h-10 rounded-lg text-lg",
-    lg: "w-16 h-16 rounded-2xl text-2xl",
+    sm: "w-7 h-7 rounded-md text-xs",
+    md: "w-8 h-8 rounded-md text-sm",
+    lg: "w-14 h-14 rounded-xl text-xl",
   };
 
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center bg-primary font-bold text-primary-foreground shadow-sm",
+        "inline-flex items-center justify-center bg-primary font-bold tracking-tight text-primary-foreground",
         sizeClasses[size],
         className
       )}
     >
-      <span>OS</span>
+      <span aria-hidden="true">SF</span>
     </div>
   );
 }

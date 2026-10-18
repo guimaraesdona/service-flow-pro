@@ -1,7 +1,4 @@
-@import url('@fontsource/league-spartan/400.css');
-@import url('@fontsource/league-spartan/500.css');
-@import url('@fontsource/league-spartan/600.css');
-@import url('@fontsource/league-spartan/700.css');
+@import url('@fontsource-variable/inter');
 
 @tailwind base;
 @tailwind components;
@@ -9,104 +6,137 @@
 
 @layer base {
   :root {
-    /* OSApp Design System */
-    --background: 210 43% 96%;
-    --foreground: 0 0% 16%;
+    /* Service Flow Pro: superfícies brancas, uma cor de marca, status com texto AA */
+    --background: 220 20% 97%;
+    --foreground: 222 25% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 16%;
+    --card-foreground: 222 25% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 16%;
+    --popover-foreground: 222 25% 12%;
 
-    --primary: 196 37% 24%;
+    --primary: 221 83% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 91%;
-    --secondary-foreground: 0 0% 16%;
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 222 25% 12%;
 
-    --tertiary: 210 43% 96%;
-    --tertiary-foreground: 0 0% 16%;
+    --tertiary: 220 20% 97%;
+    --tertiary-foreground: 222 25% 12%;
 
-    --muted: 0 0% 91%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 9% 38%;
 
-    --accent: 196 37% 30%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 221 83% 96%;
+    --accent-foreground: 221 83% 36%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 196 37% 24%;
+    --border: 220 13% 89%;
+    --input: 220 13% 80%;
+    --ring: 221 83% 48%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Status Colors */
-    --status-start: 48 89% 50%;
-    --status-progress: 204 70% 53%;
-    --status-waiting: 37 90% 51%;
-    --status-cancelled: 184 6% 62%;
-    --status-finished: 145 63% 49%;
+    /* Status: o tom sólido marca (pontos, barras); -fg é texto, -bg é fundo de pílula */
+    --status-start: 221 83% 53%;
+    --status-start-fg: 221 75% 36%;
+    --status-start-bg: 221 90% 95%;
+    --status-progress: 38 92% 50%;
+    --status-progress-fg: 30 90% 28%;
+    --status-progress-bg: 42 96% 91%;
+    --status-waiting: 271 60% 55%;
+    --status-waiting-fg: 271 55% 40%;
+    --status-waiting-bg: 271 80% 95%;
+    --status-cancelled: 220 9% 60%;
+    --status-cancelled-fg: 220 9% 36%;
+    --status-cancelled-bg: 220 14% 93%;
+    --status-finished: 152 60% 40%;
+    --status-finished-fg: 152 65% 25%;
+    --status-finished-bg: 150 55% 92%;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
-    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.08);
+    /* Sombras só em sobreposições */
+    --shadow-sm: 0 1px 2px 0 hsl(222 25% 12% / 0.05);
+    --shadow-md: 0 4px 12px -2px hsl(222 25% 12% / 0.10), 0 2px 4px -2px hsl(222 25% 12% / 0.06);
+    --shadow-lg: 0 12px 28px -6px hsl(222 25% 12% / 0.16), 0 4px 8px -4px hsl(222 25% 12% / 0.08);
+    --shadow-card: 0 1px 2px 0 hsl(222 25% 12% / 0.04);
 
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 16%;
-    --sidebar-primary: 196 37% 24%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 25% 12%;
+    --sidebar-primary: 221 83% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 91%;
-    --sidebar-accent-foreground: 0 0% 16%;
-    --sidebar-border: 0 0% 85%;
-    --sidebar-ring: 196 37% 24%;
+    --sidebar-accent: 221 83% 96%;
+    --sidebar-accent-foreground: 221 83% 36%;
+    --sidebar-border: 220 13% 89%;
+    --sidebar-ring: 221 83% 48%;
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 0 0% 95%;
+    --background: 222 24% 8%;
+    --foreground: 220 15% 93%;
 
-    --card: 220 20% 14%;
-    --card-foreground: 0 0% 95%;
+    --card: 222 20% 11%;
+    --card-foreground: 220 15% 93%;
 
-    --popover: 220 20% 14%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 222 20% 13%;
+    --popover-foreground: 220 15% 93%;
 
-    --primary: 196 50% 45%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 222 15% 17%;
+    --secondary-foreground: 220 15% 93%;
 
-    --tertiary: 220 20% 12%;
-    --tertiary-foreground: 0 0% 95%;
+    --tertiary: 222 22% 9%;
+    --tertiary-foreground: 220 15% 93%;
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 222 15% 15%;
+    --muted-foreground: 220 10% 66%;
 
-    --accent: 196 50% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 221 50% 20%;
+    --accent-foreground: 217 90% 80%;
 
-    --destructive: 0 62% 30%;
+    --destructive: 0 70% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 25%;
-    --input: 220 15% 25%;
-    --ring: 196 50% 45%;
+    /* Texto sobre superfície escura: os tons de botão não passam de 4,5:1. */
+    --primary-text: 217 90% 72%;
+    --destructive-text: 0 85% 72%;
 
-    --sidebar-background: 220 20% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 196 50% 45%;
+    --border: 222 15% 19%;
+    --input: 222 13% 28%;
+    --ring: 217 90% 62%;
+
+    --status-start: 217 90% 62%;
+    --status-start-fg: 214 95% 78%;
+    --status-start-bg: 221 55% 19%;
+    --status-progress: 40 92% 55%;
+    --status-progress-fg: 42 95% 70%;
+    --status-progress-bg: 35 60% 17%;
+    --status-waiting: 271 70% 68%;
+    --status-waiting-fg: 270 85% 82%;
+    --status-waiting-bg: 271 40% 21%;
+    --status-cancelled: 220 9% 55%;
+    --status-cancelled-fg: 220 10% 72%;
+    --status-cancelled-bg: 222 12% 19%;
+    --status-finished: 152 55% 48%;
+    --status-finished-fg: 150 60% 70%;
+    --status-finished-bg: 155 45% 15%;
+
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 12px 28px -6px hsl(0 0% 0% / 0.6);
+    --shadow-card: none;
+
+    --sidebar-background: 222 22% 9%;
+    --sidebar-foreground: 220 15% 93%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 15% 25%;
-    --sidebar-ring: 196 50% 45%;
+    --sidebar-accent: 221 50% 20%;
+    --sidebar-accent-foreground: 217 90% 80%;
+    --sidebar-border: 222 15% 19%;
+    --sidebar-ring: 217 90% 62%;
   }
 }
 
@@ -116,21 +146,39 @@
   }
 
   html {
-    font-family: 'League Spartan', system-ui, sans-serif;
+    font-family: 'Inter Variable', system-ui, sans-serif;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  /* Valores, números de OS e datas alinham em coluna. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+  }
+
+  .dark .text-primary {
+    color: hsl(var(--primary-text));
+  }
+
+  .dark .text-destructive {
+    color: hsl(var(--destructive-text));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-card rounded-xl;
-  }
-
   .status-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium;
   }
 
   .nav-item {
@@ -146,23 +194,23 @@
   }
 
   .content-container {
-    @apply px-4 py-6 max-w-lg mx-auto lg:max-w-none lg:px-8;
+    @apply px-4 py-5 max-w-lg mx-auto lg:max-w-6xl lg:px-8 lg:py-6;
   }
 
   .input-field {
-    @apply h-12 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 transition-all;
+    @apply h-11 bg-card border border-input transition-colors;
   }
 
   .btn-primary {
-    @apply h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all;
+    @apply h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-colors;
   }
 
   .btn-secondary {
-    @apply h-12 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium transition-all;
+    @apply h-11 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium transition-colors;
   }
 
   .card-elevated {
-    @apply bg-card rounded-xl shadow-card border border-border/30 overflow-hidden;
+    @apply bg-card rounded-lg shadow-card border border-border overflow-hidden;
   }
 }
 

@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/30">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between h-14 px-4">
           <Link to="/" className="p-2 -ml-2 text-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -91,8 +91,8 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <div className="text-center animate-scale-in">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-status-finished/15 rounded-full mb-4">
-                <Mail className="w-8 h-8 text-status-finished" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-status-finished-bg rounded-full mb-4">
+                <Mail className="w-8 h-8 text-status-finished-fg" />
               </div>
               <h2 className="text-2xl font-bold text-foreground">Verifique seu email</h2>
               <p className="mt-2 text-muted-foreground">

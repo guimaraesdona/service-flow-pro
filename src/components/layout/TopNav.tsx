@@ -15,7 +15,7 @@ export function TopNav({ title, showBack = false, rightAction, className }: TopN
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/30 animate-fade-in",
+        "sticky top-0 z-40 bg-card border-b border-border",
         className
       )}
     >
@@ -24,16 +24,17 @@ export function TopNav({ title, showBack = false, rightAction, className }: TopN
           {showBack && (
             <button
               onClick={() => navigate(-1)}
-              className="p-2 -ml-2 text-foreground hover:text-primary transition-colors"
+              aria-label="Voltar"
+              className="w-10 h-10 -ml-2 flex items-center justify-center rounded-md text-foreground hover:bg-secondary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
           )}
         </div>
 
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+        <h1 className="text-base font-semibold text-foreground truncate">{title}</h1>
 
-        <div className="w-10 flex justify-end">
+        <div className="min-w-10 flex justify-end">
           {rightAction}
         </div>
       </div>

@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/30">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between h-14 px-4">
           <Link to="/" className="p-2 -ml-2 text-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />

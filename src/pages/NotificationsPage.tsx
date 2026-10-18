@@ -53,9 +53,9 @@ const iconMap = {
 };
 
 const colorMap = {
-  success: "bg-status-finished/15 text-status-finished",
-  warning: "bg-status-waiting/15 text-status-waiting",
-  info: "bg-status-progress/15 text-status-progress",
+  success: "bg-status-finished-bg text-status-finished-fg",
+  warning: "bg-status-waiting-bg text-status-waiting-fg",
+  info: "bg-status-progress-bg text-status-progress-fg",
 };
 
 export default function NotificationsPage() {
@@ -83,8 +83,8 @@ export default function NotificationsPage() {
                   <div
                     key={notification.id}
                     className={cn(
-                      "card-elevated p-4 flex gap-4 hover:shadow-soft transition-all animate-slide-up cursor-pointer",
-                      !notification.read && "border-l-4 border-l-primary"
+                      "card-elevated p-4 flex gap-4 relative",
+                      !notification.read && "bg-accent/40"
                     )}
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
