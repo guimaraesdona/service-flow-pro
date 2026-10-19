@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import {
   DollarSign,
@@ -19,7 +18,8 @@ import {
 } from "lucide-react";
 
 import { useTransactions } from "@/hooks/useTransactions";
-import { formatOrderNumber } from "@/lib/formatters";
+import { formatCurrency, formatOrderNumber } from "@/lib/formatters";
+import { OrderCombobox } from "@/components/form/OrderCombobox";
 import { useOrders } from "@/hooks/useOrders";
 
 export default function FinancialPage() {
@@ -36,6 +36,12 @@ export default function FinancialPage() {
   const pendingRevenue = payments?.filter(p => p.type === "pending").reduce((acc, p) => acc + p.amount, 0) || 0;
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // OS que ainda podem receber pagamento, e quanto cada uma já recebeu.
+  const payableOrders = (orders ?? []).filter((o) => o.status !== "cancelled");
+  const selectedOrderData = orders?.find((o) => o.id === selectedOrder);
+  const receivedFor = (orderId: string) =>
+    (payments ?? []).filter((p) => p.orderId === orderId && p.type === "received").reduce((acc, p) => acc + p.amount, 0);
 
   const validateField = (field: string, value: string) => {
     let error = "";
@@ -204,26 +210,31 @@ export default function FinancialPage() {
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label>Ordem de Serviço</Label>
-                      <Select
+                      <Label htmlFor="payment-order">Ordem de serviço</Label>
+                      <OrderCombobox
+                        id="payment-order"
+                        orders={payableOrders}
                         value={selectedOrder}
-                        onValueChange={(val) => {
+                        invalid={!!errors.selectedOrder}
+                        onChange={(val) => {
                           setSelectedOrder(val);
                           if (errors.selectedOrder) validateField("selectedOrder", val);
+                          // Sugere o que falta receber, sem sobrescrever um valor já digitado.
+                          const order = orders?.find((o) => o.id === val);
+                          if (order && !amount) {
+                            const remaining = order.total - receivedFor(val);
+                            if (remaining > 0) setAmount(remaining.toFixed(2));
+                          }
                         }}
-                      >
-                        <SelectTrigger className={errors.selectedOrder ? "border-red-500 focus:ring-red-500" : ""}>
-                          <SelectValue placeholder="Selecione uma ordem" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {orders?.map((order) => (
-                            <SelectItem key={order.id} value={order.id}>
-                              {formatOrderNumber(order)} - {order.clientName} (R$ {order.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.selectedOrder && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.selectedOrder}</p>}
+                      />
+                      {selectedOrderData && (
+                        <p className="text-xs text-muted-foreground tabular">
+                          Recebido {formatCurrency(receivedFor(selectedOrderData.id))} de {formatCurrency(selectedOrderData.total)}
+                          {selectedOrderData.total - receivedFor(selectedOrderData.id) > 0 &&
+                            ` · faltam ${formatCurrency(selectedOrderData.total - receivedFor(selectedOrderData.id))}`}
+                        </p>
+                      )}
+                      {errors.selectedOrder && <p role="alert" className="text-xs font-medium text-destructive">{errors.selectedOrder}</p>}
                     </div>
 
                     <div className="space-y-2">
