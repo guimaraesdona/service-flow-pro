@@ -6,6 +6,8 @@ import {
   formatCurrency,
   formatDocument,
   formatOrderNumber,
+  fromScheduledAt,
+  toScheduledAt,
   formatPhone,
   normalizeDocument,
 } from "./formatters";
@@ -86,5 +88,24 @@ describe("formatOrderNumber", () => {
   it("cai para o início do id, sem expor o UUID inteiro", () => {
     expect(formatOrderNumber({ id: "26e8f1aa-0000-4000-8000-000000000000" })).toBe("#26E8");
     expect(formatOrderNumber({ id: "26e8f1aa-0000", number: null })).toBe("#26E8");
+  });
+});
+
+describe("agendamento", () => {
+  it("ida e volta preserva data e hora locais", () => {
+    const iso = toScheduledAt("2026-10-25", "14:30");
+    expect(iso).toMatch(/Z$/);
+    expect(fromScheduledAt(iso)).toEqual({ date: "2026-10-25", time: "14:30" });
+  });
+
+  it("lê instantes com fuso no horário local, não em UTC", () => {
+    const local = new Date(2026, 9, 25, 9, 0);
+    expect(fromScheduledAt(local.toISOString())).toEqual({ date: "2026-10-25", time: "09:00" });
+  });
+
+  it("só a data agenda para o início do dia; sem data não agenda", () => {
+    expect(fromScheduledAt(toScheduledAt("2026-10-25", ""))).toEqual({ date: "2026-10-25", time: "00:00" });
+    expect(toScheduledAt("", "14:30")).toBeNull();
+    expect(fromScheduledAt(null)).toEqual({ date: "", time: "" });
   });
 });

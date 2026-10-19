@@ -17,7 +17,7 @@ import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
 import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
-import { formatOrderNumber, formatCurrency } from "@/lib/formatters";
+import { formatOrderNumber, formatCurrency, fromScheduledAt, toScheduledAt } from "@/lib/formatters";
 import { ImageUploader } from "@/components/form/ImageUploader";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/lib/orderStatus";
 import { DatePicker } from "@/components/form/DatePicker";
@@ -76,8 +76,9 @@ export default function EditOrderPage() {
     if (order) {
       setSelectedClient(order.clientId);
       if (order.scheduledAt) {
-        setScheduledDate(order.scheduledAt.split("T")[0]);
-        setScheduledTime(order.scheduledAt.split("T")[1]?.substring(0, 5) || "");
+        const { date, time } = fromScheduledAt(order.scheduledAt);
+        setScheduledDate(date);
+        setScheduledTime(time);
       }
       setDescription(order.description || "");
       setObservations(order.observations || "");
@@ -240,7 +241,7 @@ export default function EditOrderPage() {
           discount: discountValue,
           description,
           observations,
-          scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
+          scheduledAt: toScheduledAt(scheduledDate, scheduledTime),
           services,
           customFields: customFieldsObject,
           imageUrl: imageUrl

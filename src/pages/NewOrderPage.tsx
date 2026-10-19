@@ -17,7 +17,7 @@ import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { useStorage } from "@/hooks/useStorage";
 import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, toScheduledAt } from "@/lib/formatters";
 import { ImageUploader } from "@/components/form/ImageUploader";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/lib/orderStatus";
 import { DatePicker } from "@/components/form/DatePicker";
@@ -167,7 +167,7 @@ export default function NewOrderPage() {
         discount: discountValue,
         description: description,
         observations: observations,
-        scheduledAt: scheduledDate && scheduledTime ? `${scheduledDate}T${scheduledTime}` : null,
+        scheduledAt: toScheduledAt(scheduledDate, scheduledTime),
         services,
         customFields: customFieldsObject,
         imageUrl: imageUrl

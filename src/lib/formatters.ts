@@ -66,3 +66,24 @@ export const formatOrderNumber = (order: { id: string; number?: string | null })
 const PRIORITY_LABELS: Record<string, string> = { low: "Baixa", normal: "Normal", high: "Alta" };
 
 export const formatPriority = (priority: string) => PRIORITY_LABELS[priority] ?? priority;
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+// Agendamento: os campos do formulário (data e hora locais) viram um instante
+// com fuso. Sem fuso, um timestamptz do Postgres leria a hora como UTC.
+// Só a data, sem hora, agenda para o início do dia em vez de ser descartada.
+export const toScheduledAt = (date: string, time: string): string | null => {
+  if (!date) return null;
+  const local = new Date(`${date}T${time || "00:00"}`);
+  return Number.isNaN(local.getTime()) ? null : local.toISOString();
+};
+
+// O inverso: instante salvo → data e hora no fuso de quem está editando.
+export const fromScheduledAt = (value?: string | null): { date: string; time: string } => {
+  const d = value ? new Date(value) : null;
+  if (!d || Number.isNaN(d.getTime())) return { date: "", time: "" };
+  return {
+    date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+    time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+  };
+};
