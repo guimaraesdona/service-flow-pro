@@ -18,6 +18,7 @@ import { useClients } from "@/hooks/useClients";
 import { useStorage } from "@/hooks/useStorage";
 import { ImageUploader } from "@/components/form/ImageUploader";
 import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
+import { DatePicker } from "@/components/form/DatePicker";
 
 export default function NewClientPage() {
   const navigate = useNavigate();
@@ -255,15 +256,15 @@ export default function NewClientPage() {
                   <div className="space-y-2">
                     <Label htmlFor="birthDate">Data Nasc. / Abertura *</Label>
                     <div className="space-y-1">
-                      <Input
+                      <DatePicker
                         id="birthDate"
-                        type="date"
+                        historical
                         value={formData.birthDate}
-                        onChange={(e) => updateField("birthDate", e.target.value)}
+                        invalid={!!errors.birthDate}
+                        onChange={(next) => updateField("birthDate", next)}
                         onBlur={() => handleBlur("birthDate")}
-                        className={`input-field ${errors.birthDate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                       />
-                      {errors.birthDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.birthDate}</p>}
+                      {errors.birthDate && <p role="alert" className="text-xs font-medium text-destructive">{errors.birthDate}</p>}
                     </div>
                   </div>
                 </div>

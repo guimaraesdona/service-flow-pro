@@ -16,6 +16,7 @@ import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 
 import { useStorage } from "@/hooks/useStorage";
 import { ImageUploader } from "@/components/form/ImageUploader";
+import { DatePicker } from "@/components/form/DatePicker";
 
 export default function EditClientPage() {
   const navigate = useNavigate();
@@ -243,12 +244,11 @@ export default function EditClientPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="birthDate">Data Nasc. / Abertura *</Label>
-                  <Input
+                  <DatePicker
                     id="birthDate"
-                    type="date"
+                    historical
                     value={formData.birthDate}
-                    onChange={(e) => updateField("birthDate", e.target.value)}
-                    className="input-field"
+                    onChange={(next) => updateField("birthDate", next)}
                   />
                 </div>
               </div>

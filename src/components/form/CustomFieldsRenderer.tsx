@@ -14,6 +14,7 @@ import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
 import { maskPhone, maskDocument, maskCEP, maskPlate } from "@/utils/masks";
 import { validateEmail, validateDocument, validatePlate } from "@/utils/validations";
 import { useState } from "react";
+import { DatePicker } from "@/components/form/DatePicker";
 
 export interface CustomFieldValue {
   fieldId: string;
@@ -175,11 +176,9 @@ export function CustomFieldsRenderer({
         );
       case "date":
         return (
-          <Input
-            type="date"
-            value={value as string}
-            onChange={(e) => updateFieldValue(field.id, e.target.value)}
-            className="input-field"
+          <DatePicker
+            value={(value as string) ?? ""}
+            onChange={(next) => updateFieldValue(field.id, next)}
           />
         );
       case "select":

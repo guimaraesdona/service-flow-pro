@@ -20,6 +20,8 @@ import { ServiceItem, OrderStatus, OrderPriority } from "@/types";
 import { formatOrderNumber, formatCurrency } from "@/lib/formatters";
 import { ImageUploader } from "@/components/form/ImageUploader";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/lib/orderStatus";
+import { DatePicker } from "@/components/form/DatePicker";
+import { TimePicker } from "@/components/form/TimePicker";
 
 export default function EditOrderPage() {
   const navigate = useNavigate();
@@ -427,11 +429,11 @@ export default function EditOrderPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="order-date">Agendar para</Label>
-                  <Input id="order-date" type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} className="input-field" />
+                  <DatePicker id="order-date" value={scheduledDate} onChange={setScheduledDate} placeholder="Sem data" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="order-time">Hora</Label>
-                  <Input id="order-time" type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="input-field" />
+                  <TimePicker id="order-time" value={scheduledTime} onChange={setScheduledTime} />
                 </div>
               </div>
             </section>

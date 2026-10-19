@@ -21,6 +21,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency, formatOrderNumber } from "@/lib/formatters";
 import { OrderCombobox } from "@/components/form/OrderCombobox";
 import { useOrders } from "@/hooks/useOrders";
+import { DatePicker } from "@/components/form/DatePicker";
 
 export default function FinancialPage() {
   const { transactions: payments, createTransaction, deleteTransaction } = useTransactions();
@@ -255,16 +256,15 @@ export default function FinancialPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Data do Pagamento</Label>
-                      <Input
-                        type="date"
+                      <Label htmlFor="payment-date">Data do pagamento</Label>
+                      <DatePicker
+                        id="payment-date"
                         value={paymentDate}
-                        onChange={(e) => {
-                            setPaymentDate(e.target.value);
-                            if (errors.paymentDate) validateField("paymentDate", e.target.value);
+                        invalid={!!errors.paymentDate}
+                        onChange={(next) => {
+                            setPaymentDate(next);
+                            if (errors.paymentDate) validateField("paymentDate", next);
                         }}
-                        onBlur={() => handleBlur("paymentDate", paymentDate)}
-                        className={errors.paymentDate ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
                       {errors.paymentDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.paymentDate}</p>}
                     </div>

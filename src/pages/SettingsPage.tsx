@@ -25,6 +25,7 @@ import { useStorage } from "@/hooks/useStorage";
 import { useProfile } from "@/hooks/useProfile";
 import { maskPhone, maskDocument, maskCEP } from "@/utils/masks";
 import { validateEmail, validateDocument } from "@/utils/validations";
+import { DatePicker } from "@/components/form/DatePicker";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -324,15 +325,15 @@ export default function SettingsPage() {
                 Data de Nascimento / Abertura
               </Label>
               <div className="space-y-1">
-                <Input
+                <DatePicker
                   id="birth_date"
-                  type="date"
+                  historical
                   value={userData.birth_date}
-                  onChange={(e) => updateField("birth_date", e.target.value)}
+                  invalid={!!errors.birth_date}
+                  onChange={(next) => updateField("birth_date", next)}
                   onBlur={() => handleBlur("birth_date")}
-                  className={`input-field ${errors.birth_date ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
-                {errors.birth_date && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.birth_date}</p>}
+                {errors.birth_date && <p role="alert" className="text-xs font-medium text-destructive">{errors.birth_date}</p>}
               </div>
             </div>
           </div>
