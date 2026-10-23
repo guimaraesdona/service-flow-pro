@@ -235,6 +235,23 @@ alter table public.order_items              enable row level security;
 alter table public.transactions             enable row level security;
 alter table public.custom_field_definitions enable row level security;
 
+-- Grants da Data API. A partir de 30/10/2026 o Supabase deixa de conceder acesso
+-- automático às tabelas novas do schema public: sem grant, supabase-js recebe
+-- "permission denied" mesmo com a policy certa. Toda tabela nova em public
+-- precisa do mesmo bloco, na migration que a cria.
+-- anon fica sem grant de propósito: nenhuma tela anônima lê tabela (login e
+-- cadastro passam pelo Auth, o perfil nasce pelo trigger security definer).
+grant select, insert, update, delete on
+  public.profiles,
+  public.clients,
+  public.client_addresses,
+  public.services,
+  public.service_orders,
+  public.order_items,
+  public.transactions,
+  public.custom_field_definitions
+to authenticated, service_role;
+
 -- profiles: cada usuário enxerga apenas o próprio perfil.
 create policy "profiles: select own" on public.profiles
   for select to authenticated using (auth.uid() = id);

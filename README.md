@@ -188,6 +188,7 @@ supabase db push
 Pontos de projeto que valem destaque:
 
 - **RLS em todas as tabelas** — é a única barreira entre tenants, já que o app acessa o banco direto com a anon key. Tabelas com `user_id` usam `auth.uid() = user_id`; `client_addresses` e `order_items` herdam a posse do registro pai via `exists (...)`.
+- **Grants explícitos** — desde 30/10/2026 o Supabase não libera a Data API para tabelas novas em `public`. Toda migration que cria tabela precisa de `grant select, insert, update, delete on public.<tabela> to authenticated, service_role;`, senão o supabase-js recebe `permission denied`. O `anon` fica sem grant porque nenhuma tela anônima lê tabela.
 - **Trigger `handle_new_user`** — `RegisterPage.tsx` só chama `auth.signUp()` e nunca insere em `profiles`, mas `useProfile()` faz `.single()` e trata a ausência da linha como erro. Sem o trigger, todo usuário novo quebra a tela de configurações. A migration também preenche perfis de usuários que já existiam.
 - **Cascatas** — apagar um usuário limpa clientes, endereços, ordens, itens e transações; apagar um cliente leva junto seus endereços e ordens. Isso sustenta a estratégia de "regravar tudo" (delete + insert) usada nos hooks.
 - **CHECK constraints** em `status`, `priority`, `type` e `entity_type`, espelhando as unions do TypeScript em `src/types/index.ts`.
