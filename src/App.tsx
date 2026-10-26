@@ -1,42 +1,44 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
-
-// Auth pages
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-
-// App pages
-import DashboardPage from "./pages/DashboardPage";
-import ClientsPage from "./pages/ClientsPage";
-import ClientDetailPage from "./pages/ClientDetailPage";
-import NewClientPage from "./pages/NewClientPage";
-import EditClientPage from "./pages/EditClientPage";
-import ServicesPage from "./pages/ServicesPage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
-import NewServicePage from "./pages/NewServicePage";
-import EditServicePage from "./pages/EditServicePage";
-import OrdersPage from "./pages/OrdersPage";
-import OrderDetailPage from "./pages/OrderDetailPage";
-import NewOrderPage from "./pages/NewOrderPage";
-import EditOrderPage from "./pages/EditOrderPage";
-import PrintOrderPage from "./pages/PrintOrderPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import FinancialPage from "./pages/FinancialPage";
-import SettingsPage from "./pages/SettingsPage";
-import ReportsPage from "./pages/ReportsPage";
-
-import NotFound from "./pages/NotFound";
-
+import { AppLayout, RouteFallback } from "@/components/layout/AppLayout";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+// O login é a primeira tela: vai no bundle principal. O resto carrega por rota.
+import LoginPage from "./pages/LoginPage";
+
+// Auth pages
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+
+// App pages
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ClientsPage = lazy(() => import("./pages/ClientsPage"));
+const ClientDetailPage = lazy(() => import("./pages/ClientDetailPage"));
+const NewClientPage = lazy(() => import("./pages/NewClientPage"));
+const EditClientPage = lazy(() => import("./pages/EditClientPage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
+const NewServicePage = lazy(() => import("./pages/NewServicePage"));
+const EditServicePage = lazy(() => import("./pages/EditServicePage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const NewOrderPage = lazy(() => import("./pages/NewOrderPage"));
+const EditOrderPage = lazy(() => import("./pages/EditOrderPage"));
+const PrintOrderPage = lazy(() => import("./pages/PrintOrderPage"));
+const FinancialPage = lazy(() => import("./pages/FinancialPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* Auth Routes */}
               <Route path="/" element={<LoginPage />} />
@@ -77,7 +80,6 @@ const App = () => (
                 <Route path="/ordens/:id" element={<OrderDetailPage />} />
                 <Route path="/ordens/:id/editar" element={<EditOrderPage />} />
                 <Route path="/ordens/:id/imprimir" element={<PrintOrderPage />} />
-                <Route path="/notificacoes" element={<NotificationsPage />} />
                 <Route path="/financeiro" element={<FinancialPage />} />
                 <Route path="/configuracoes" element={<SettingsPage />} />
                 <Route path="/relatorios" element={<ReportsPage />} />
@@ -86,6 +88,7 @@ const App = () => (
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
