@@ -50,6 +50,7 @@ export default function ClientDetailPage() {
         rightAction={
           <Button
             size="icon"
+            aria-label="Editar cliente"
             variant="ghost"
             onClick={() => navigate(`/clientes/${id}/editar`)}
             className="text-primary hover:text-primary/80"

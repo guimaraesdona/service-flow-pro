@@ -8,7 +8,7 @@ export function NewOrderFab() {
   return (
     <Button
       asChild
-      className="lg:hidden fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-40 h-12 rounded-full px-5 shadow-elevated"
+      className="lg:hidden fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-40 h-12 max-md:h-12 rounded-full px-5 shadow-elevated"
     >
       <Link to="/ordens/nova">
         <Plus className="w-5 h-5 mr-1.5" />

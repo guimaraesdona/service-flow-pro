@@ -165,13 +165,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between h-14 px-4">
           <button
             onClick={() => (step === 1 ? navigate(-1) : setStep(1))}
-            className="p-2 -ml-2 text-foreground hover:text-primary transition-colors"
+            aria-label="Voltar"
+            className="w-11 h-11 -ml-3 flex items-center justify-center rounded-md text-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -197,43 +198,43 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Nome / Razão Social</Label>
                 <Input
-                  id="name"
+                  id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
                   placeholder="Seu nome completo"
                   value={formData.name}
                   onChange={(e) => updateField("name", e.target.value)}
                   onBlur={() => handleBlur("name")}
-                  className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
-                {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+                {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
-                  id="email"
+                  id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
                   type="email"
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
-                  className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
-                {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
+                {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="document">CPF / CNPJ</Label>
                   <Input
-                    id="document"
+                    id="document" aria-invalid={!!errors.document} aria-describedby={errors.document ? "document-error" : undefined}
                     placeholder="000.000.000-00"
                     value={formData.document}
                     onChange={(e) => updateField("document", maskDocument(e.target.value))}
                     onBlur={() => handleBlur("document")}
-                    className={`input-field ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    className={`input-field ${errors.document ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     maxLength={18}
                   />
-                  {errors.document && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.document}</p>}
+                  {errors.document && <p id="document-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.document}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="birthDate">Data Nasc. / Abertura</Label>
@@ -252,16 +253,16 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
                 <Input
-                  id="phone"
+                  id="phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-error" : undefined}
                   type="tel"
                   placeholder="(00) 00000-0000"
                   value={formData.phone}
                   onChange={(e) => updateField("phone", maskPhone(e.target.value))}
                   onBlur={() => handleBlur("phone")}
-                  className={`input-field ${errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   maxLength={15}
                 />
-                {errors.phone && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.phone}</p>}
+                {errors.phone && <p id="phone-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.phone}</p>}
               </div>
 
               <div className="space-y-2">
@@ -273,13 +274,15 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => updateField("password", e.target.value)}
-                    className="input-field pr-10"
+                    className="input-field pr-11"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -423,6 +426,6 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

@@ -20,12 +20,12 @@ export function TopNav({ title, showBack = false, rightAction, className }: TopN
       )}
     >
       <div className="max-w-lg mx-auto flex items-center justify-between h-14 px-4">
-        <div className="w-10">
+        <div className="w-11">
           {showBack && (
             <button
               onClick={() => navigate(-1)}
               aria-label="Voltar"
-              className="w-10 h-10 -ml-2 flex items-center justify-center rounded-md text-foreground hover:bg-secondary transition-colors"
+              className="w-11 h-11 -ml-3 flex items-center justify-center rounded-md text-foreground hover:bg-secondary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -34,7 +34,7 @@ export function TopNav({ title, showBack = false, rightAction, className }: TopN
 
         <h1 className="text-base font-semibold text-foreground truncate">{title}</h1>
 
-        <div className="min-w-10 flex justify-end">
+        <div className="min-w-11 flex justify-end">
           {rightAction}
         </div>
       </div>

@@ -112,7 +112,7 @@ export default function OrdersPage() {
           />
         </div>
 
-        <div role="group" aria-label="Filtrar por status" className="-mx-4 px-4 lg:mx-0 lg:px-0 flex gap-1.5 overflow-x-auto pb-1">
+        <div role="group" aria-label="Filtrar por status" className="-mx-4 px-4 lg:mx-0 lg:px-0 -mt-2 pt-2 pb-3 flex gap-1.5 overflow-x-auto">
           {filters.map((value) => {
             const active = filter === value;
             return (
@@ -122,7 +122,7 @@ export default function OrdersPage() {
                 aria-pressed={active}
                 onClick={() => setFilter(value)}
                 className={cn(
-                  "h-8 px-3 rounded-full text-sm font-medium whitespace-nowrap border transition-colors",
+                  "relative h-8 px-3 rounded-full text-sm font-medium whitespace-nowrap border transition-colors after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']",
                   active
                     ? "bg-foreground text-background border-foreground"
                     : "bg-card text-muted-foreground border-border hover:text-foreground",

@@ -82,10 +82,15 @@ function SortableItem({ field, onRemove, isDeleting }: { field: CustomField; onR
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg touch-none"
+      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
     >
       <div className="flex items-center gap-3">
-        <div {...attributes} {...listeners} className="cursor-grab hover:text-primary">
+        <div
+          {...attributes}
+          {...listeners}
+          aria-label={`Reordenar ${field.name}`}
+          className="-m-2.5 w-11 h-11 flex items-center justify-center rounded-md cursor-grab touch-none hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
             <GripVertical className="w-5 h-5 text-muted-foreground transition-colors" />
         </div>
         <div>
@@ -106,7 +111,7 @@ function SortableItem({ field, onRemove, isDeleting }: { field: CustomField; onR
               {field.type === "multiselect" && "Multiselect"}
             </span>
             {field.required && (
-              <span className="text-xs font-medium text-red-600 dark:text-red-400">• Obrigatório</span>
+              <span className="text-xs font-medium text-destructive">• Obrigatório</span>
             )}
           </div>
         </div>
@@ -117,6 +122,7 @@ function SortableItem({ field, onRemove, isDeleting }: { field: CustomField; onR
         size="icon"
         onClick={() => onRemove(field.id)}
         disabled={isDeleting}
+        aria-label={`Excluir campo ${field.name}`}
         className="text-destructive hover:text-destructive/80"
       >
         {isDeleting ? (
@@ -237,7 +243,7 @@ export function CustomFieldsSettings() {
           <TabsTrigger value="service">Serviços</TabsTrigger>
         </TabsList>
 
-        <div className="space-y-4">
+        <TabsContent value={activeTab} className="mt-0 space-y-4">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -274,7 +280,7 @@ export function CustomFieldsSettings() {
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full border-dashed">
                 <Plus className="w-4 h-4 mr-2" />
-                Adicionar Campo para {ENTITY_LABELS[activeTab]}
+                Adicionar campo
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -332,7 +338,7 @@ export function CustomFieldsSettings() {
                         className="input-field flex-1"
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSelectOption())}
                       />
-                      <Button type="button" onClick={addSelectOption} size="icon" variant="outline">
+                      <Button type="button" onClick={addSelectOption} size="icon" variant="outline" aria-label="Adicionar opção">
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
@@ -369,8 +375,9 @@ export function CustomFieldsSettings() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label>Campo obrigatório</Label>
+                  <Label htmlFor="new-field-required">Campo obrigatório</Label>
                   <Switch
+                    id="new-field-required"
                     checked={newField.required}
                     onCheckedChange={(checked) =>
                       setNewField((prev) => ({ ...prev, required: checked }))
@@ -389,7 +396,7 @@ export function CustomFieldsSettings() {
               </Button>
             </DialogContent>
           </Dialog>
-        </div>
+        </TabsContent>
       </Tabs>
     </div>
   );

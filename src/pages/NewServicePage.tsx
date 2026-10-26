@@ -172,15 +172,15 @@ export default function NewServicePage() {
             <div className="space-y-2">
               <Label htmlFor="name">Nome do Serviço *</Label>
               <Input
-                id="name"
+                id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
                 placeholder="Ex: Manutenção Preventiva"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 onBlur={() => handleBlur("name")}
-                className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 required
               />
-              {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+              {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -190,24 +190,24 @@ export default function NewServicePage() {
                 placeholder="Descreva o serviço..."
                 value={formData.description}
                 onChange={(e) => updateField("description", e.target.value)}
-                className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
+                className="min-h-24 resize-none"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="price">Valor Base (R$) *</Label>
               <Input
-                id="price"
+                id="price" aria-invalid={!!errors.price} aria-describedby={errors.price ? "price-error" : undefined}
                 type="number"
                 step="0.01"
                 placeholder="0,00"
                 value={formData.price}
                 onChange={(e) => updateField("price", e.target.value)}
                 onBlur={() => handleBlur("price")}
-                className={`input-field ${errors.price ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.price ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 required
               />
-               {errors.price && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.price}</p>}
+               {errors.price && <p id="price-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.price}</p>}
             </div>
           </div>
 

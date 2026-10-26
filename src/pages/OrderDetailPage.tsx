@@ -294,7 +294,7 @@ export default function OrderDetailPage() {
           <Section title="Cliente">
             <Link
               to={`/clientes/${order.clientId}`}
-              className="flex items-center justify-between gap-3 -mx-2 px-2 py-1.5 rounded-md hover:bg-muted"
+              className="flex items-center justify-between gap-3 -mx-2 px-2 py-1.5 max-md:min-h-11 rounded-md hover:bg-muted"
             >
               <span className="text-sm font-medium text-foreground">{order.clientName}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
@@ -302,13 +302,13 @@ export default function OrderDetailPage() {
             {(client?.phone || client?.email) && (
               <div className="mt-2 space-y-1">
                 {client?.phone && (
-                  <a href={`tel:${client.phone.replace(/\D/g, "")}`} className="flex items-center gap-2 h-9 text-sm text-primary hover:underline underline-offset-4">
+                  <a href={`tel:${client.phone.replace(/\D/g, "")}`} className="flex items-center gap-2 h-9 max-md:h-11 text-sm text-primary hover:underline underline-offset-4">
                     <Phone className="w-4 h-4" aria-hidden="true" />
                     {client.phone}
                   </a>
                 )}
                 {client?.email && (
-                  <a href={`mailto:${client.email}`} className="flex items-center gap-2 h-9 text-sm text-primary hover:underline underline-offset-4 truncate">
+                  <a href={`mailto:${client.email}`} className="flex items-center gap-2 h-9 max-md:h-11 text-sm text-primary hover:underline underline-offset-4 truncate">
                     <Mail className="w-4 h-4" aria-hidden="true" />
                     {client.email}
                   </a>

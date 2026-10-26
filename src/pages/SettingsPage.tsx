@@ -240,7 +240,6 @@ export default function SettingsPage() {
                     id="use_logo"
                     checked={userData.use_logo_for_print}
                     onCheckedChange={(checked) => setUserData(prev => ({ ...prev, use_logo_for_print: checked }))}
-                    className="scale-75 origin-left"
                   />
                   <Label htmlFor="use_logo" className="text-xs text-muted-foreground cursor-pointer">
                     Usar logo na impressão
@@ -256,14 +255,14 @@ export default function SettingsPage() {
                 Nome / Razão Social
               </Label>
               <Input
-                id="name"
+                id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
                 value={userData.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 onBlur={() => handleBlur("name")}
-                className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 placeholder="Ex: Minha Empresa LTDA"
               />
-              {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+              {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -273,15 +272,15 @@ export default function SettingsPage() {
               </Label>
               <div className="space-y-1">
                 <Input
-                  id="email"
+                  id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
                   type="email"
                   value={userData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
-                  className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="Ex: contato@minhaempresa.com"
                 />
-                {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
+                {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
               </div>
             </div>
 
@@ -291,31 +290,31 @@ export default function SettingsPage() {
                 Telefone
               </Label>
               <Input
-                id="phone"
+                id="phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-error" : undefined}
                 type="tel"
                 value={userData.phone}
                 onChange={(e) => updateField("phone", maskPhone(e.target.value))}
                 onBlur={() => handleBlur("phone")}
-                className={`input-field ${errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 placeholder="Ex: (11) 99999-9999"
                 maxLength={15}
               />
-              {errors.phone && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.phone}</p>}
+              {errors.phone && <p id="phone-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="document">CPF / CNPJ</Label>
               <div className="space-y-1">
                 <Input
-                  id="document"
+                  id="document" aria-invalid={!!errors.document} aria-describedby={errors.document ? "document-error" : undefined}
                   value={userData.document}
                   onChange={(e) => updateField("document", maskDocument(e.target.value))}
                   onBlur={() => handleBlur("document")}
-                  className={`input-field ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.document ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="Ex: 000.000.000-00"
                   maxLength={18}
                 />
-                {errors.document && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.document}</p>}
+                {errors.document && <p id="document-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.document}</p>}
               </div>
             </div>
 
@@ -350,42 +349,42 @@ export default function SettingsPage() {
             <div className="space-y-2">
                 <Label htmlFor="cep">CEP</Label>
                 <Input
-                  id="cep"
+                  id="cep" aria-invalid={!!errors.cep} aria-describedby={errors.cep ? "cep-error" : undefined}
                   value={userData.cep}
                   onChange={(e) => updateField("cep", maskCEP(e.target.value))}
                   onBlur={() => handleBlur("cep")}
-                  className={`input-field ${errors.cep ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.cep ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="00000-000"
                   maxLength={9}
                 />
-                {errors.cep && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.cep}</p>}
+                {errors.cep && <p id="cep-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.cep}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="street">Logradouro</Label>
               <Input
-                id="street"
+                id="street" aria-invalid={!!errors.street} aria-describedby={errors.street ? "street-error" : undefined}
                 value={userData.street}
                 onChange={(e) => updateField("street", e.target.value)}
                 onBlur={() => handleBlur("street")}
-                className={`input-field ${errors.street ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.street ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 placeholder="Rua, Avenida..."
               />
-              {errors.street && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.street}</p>}
+              {errors.street && <p id="street-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.street}</p>}
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="number">Número</Label>
                 <Input
-                  id="number"
+                  id="number" aria-invalid={!!errors.number} aria-describedby={errors.number ? "number-error" : undefined}
                   value={userData.number}
                   onChange={(e) => updateField("number", e.target.value)}
                   onBlur={() => handleBlur("number")}
-                  className={`input-field ${errors.number ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.number ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="000"
                 />
-                {errors.number && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.number}</p>}
+                {errors.number && <p id="number-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.number}</p>}
               </div>
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="complement">Complemento</Label>
@@ -402,40 +401,40 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="neighborhood">Bairro</Label>
               <Input
-                id="neighborhood"
+                id="neighborhood" aria-invalid={!!errors.neighborhood} aria-describedby={errors.neighborhood ? "neighborhood-error" : undefined}
                 value={userData.neighborhood}
                 onChange={(e) => updateField("neighborhood", e.target.value)}
                 onBlur={() => handleBlur("neighborhood")}
-                className={`input-field ${errors.neighborhood ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.neighborhood ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 placeholder="Seu bairro"
               />
-              {errors.neighborhood && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.neighborhood}</p>}
+              {errors.neighborhood && <p id="neighborhood-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.neighborhood}</p>}
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="city">Cidade</Label>
                 <Input
-                  id="city"
+                  id="city" aria-invalid={!!errors.city} aria-describedby={errors.city ? "city-error" : undefined}
                   value={userData.city}
                   onChange={(e) => updateField("city", e.target.value)}
                   onBlur={() => handleBlur("city")}
-                  className={`input-field ${errors.city ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.city ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="Sua cidade"
                 />
-                {errors.city && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.city}</p>}
+                {errors.city && <p id="city-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.city}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">Estado</Label>
                 <Input
-                  id="state"
+                  id="state" aria-invalid={!!errors.state} aria-describedby={errors.state ? "state-error" : undefined}
                   value={userData.state}
                   onChange={(e) => updateField("state", e.target.value)}
                   onBlur={() => handleBlur("state")}
-                  className={`input-field ${errors.state ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field ${errors.state ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   placeholder="UF"
                 />
-                {errors.state && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.state}</p>}
+                {errors.state && <p id="state-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.state}</p>}
               </div>
             </div>
           </div>
@@ -460,6 +459,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <Switch
+              aria-label="Tema escuro"
               checked={isDarkMode}
               onCheckedChange={toggleDarkMode}
             />

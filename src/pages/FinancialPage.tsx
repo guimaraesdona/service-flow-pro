@@ -196,7 +196,7 @@ export default function FinancialPage() {
           {/* Payment History */}
           <div className="card-elevated animate-slide-up">
             <div className="p-4 border-b border-border/50 flex items-center justify-between">
-              <h3 className="font-semibold text-foreground">Histórico de Pagamentos</h3>
+              <h2 className="font-semibold text-foreground">Histórico de Pagamentos</h2>
 
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -239,8 +239,10 @@ export default function FinancialPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Valor Recebido (R$)</Label>
+                      <Label htmlFor="payment-amount">Valor Recebido (R$)</Label>
                       <Input
+                        id="payment-amount"
+                        aria-invalid={!!errors.amount} aria-describedby={errors.amount ? "amount-error" : undefined}
                         type="number"
                         step="0.01"
                         placeholder="0,00"
@@ -250,15 +252,15 @@ export default function FinancialPage() {
                             if (errors.amount) validateField("amount", e.target.value);
                         }}
                         onBlur={() => handleBlur("amount", amount)}
-                        className={errors.amount ? "border-red-500 focus-visible:ring-red-500" : ""}
+                        className={errors.amount ? "border-destructive focus-visible:ring-destructive" : ""}
                       />
-                      {errors.amount && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.amount}</p>}
+                      {errors.amount && <p id="amount-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.amount}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="payment-date">Data do pagamento</Label>
                       <DatePicker
-                        id="payment-date"
+                        id="payment-date" aria-describedby={errors.paymentDate ? "paymentDate-error" : undefined}
                         value={paymentDate}
                         invalid={!!errors.paymentDate}
                         onChange={(next) => {
@@ -266,7 +268,7 @@ export default function FinancialPage() {
                             if (errors.paymentDate) validateField("paymentDate", next);
                         }}
                       />
-                      {errors.paymentDate && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.paymentDate}</p>}
+                      {errors.paymentDate && <p id="paymentDate-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.paymentDate}</p>}
                     </div>
 
                     <Button onClick={handleAddPayment} className="w-full btn-primary" disabled={createTransaction.isPending}>
@@ -285,31 +287,30 @@ export default function FinancialPage() {
                 </div>
               ) : (
                 payments.map((payment) => (
-                  <div key={payment.id} className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${payment.type === "received" ? "bg-status-finished-bg" : "bg-status-waiting-bg"
+                  <div key={payment.id} className="p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`hidden sm:flex w-10 h-10 shrink-0 rounded-full items-center justify-center ${payment.type === "received" ? "bg-status-finished-bg" : "bg-status-waiting-bg"
                         }`}>
                         <User className={`w-5 h-5 ${payment.type === "received" ? "text-status-finished-fg" : "text-status-waiting-fg"
                           }`} />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{payment.clientName}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>Ordem {formatOrderNumber({ id: payment.orderId, number: payment.orderNumber })}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{payment.clientName}</p>
+                        <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                          <span className="whitespace-nowrap">Ordem {formatOrderNumber({ id: payment.orderId, number: payment.orderNumber })}</span>
+                          <span className="flex items-center gap-1 whitespace-nowrap tabular">
+                            <Calendar className="w-3 h-3" aria-hidden="true" />
                             {formatDate(payment.date)}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1 sm:gap-4 shrink-0">
                       <div className="text-right">
-                        <p className={`font-bold ${payment.type === "received" ? "text-status-finished-fg" : "text-status-waiting-fg"
+                        <p className={`font-bold whitespace-nowrap tabular ${payment.type === "received" ? "text-status-finished-fg" : "text-status-waiting-fg"
                           }`}>
-                          R$ {payment.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          {formatCurrency(payment.amount)}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {payment.type === "received" ? "Recebido" : "Pendente"}
@@ -318,7 +319,8 @@ export default function FinancialPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-muted-foreground hover:text-destructive"
+                        className="shrink-0 text-muted-foreground hover:text-destructive"
+                        aria-label={`Excluir pagamento de ${payment.clientName}`}
                         onClick={() => handleDeletePayment(payment.id)}
                         disabled={deleteTransaction.isPending}
                       >

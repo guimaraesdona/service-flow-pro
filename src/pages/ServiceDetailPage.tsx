@@ -43,6 +43,7 @@ export default function ServiceDetailPage() {
         rightAction={
           <Button
             size="icon"
+            aria-label="Editar serviço"
             variant="ghost"
             onClick={() => navigate(`/servicos/${id}/editar`)}
             className="text-primary hover:text-primary/80"

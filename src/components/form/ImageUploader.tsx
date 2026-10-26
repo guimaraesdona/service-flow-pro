@@ -66,6 +66,7 @@ export function ImageUploader({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
+                aria-label={value ? "Trocar imagem" : "Enviar imagem"}
                 className={cn(
                     "relative flex items-center justify-center overflow-hidden transition-colors border-2 border-dashed rounded-full border-border bg-secondary hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl",
                     previewClassName || "w-24 h-24"
@@ -74,7 +75,7 @@ export function ImageUploader({
                 {value ? (
                     <img
                         src={value}
-                        alt="Preview"
+                        alt=""
                         className="object-cover w-full h-full"
                     />
                 ) : (
@@ -98,7 +99,8 @@ export function ImageUploader({
                 <button
                     type="button"
                     onClick={handleRemove}
-                    className="absolute -top-1 -right-1 flex items-center justify-center w-6 h-6 transition-colors rounded-full shadow-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    className="absolute -top-1 -right-1 flex items-center justify-center w-6 h-6 transition-colors rounded-full shadow-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 after:absolute after:-inset-2.5 after:content-['']"
+                    aria-label="Remover imagem"
                     title="Remover imagem"
                 >
                     <X className="w-3 h-3" />

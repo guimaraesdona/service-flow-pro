@@ -97,11 +97,18 @@ export function CustomFieldsRenderer({
 
   const renderFieldInput = (field: CustomField) => {
     const value = getFieldValue(field.id);
+    // O rótulo (em volta) aponta para este id; o erro, para o id da mensagem.
+    const a11y = {
+      id: `cf-${field.id}`,
+      "aria-invalid": !!errors[field.id],
+      "aria-describedby": errors[field.id] ? `cf-${field.id}-error` : undefined,
+    };
 
     switch (field.type) {
        case "text":
         return (
           <Input
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
             onBlur={() => validateField(field, value)}
@@ -112,6 +119,7 @@ export function CustomFieldsRenderer({
       case "email":
         return (
           <Input
+            {...a11y}
             type="email"
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
@@ -123,6 +131,7 @@ export function CustomFieldsRenderer({
       case "phone":
         return (
           <Input
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, maskPhone(e.target.value))}
             onBlur={() => validateField(field, value)}
@@ -134,6 +143,7 @@ export function CustomFieldsRenderer({
       case "document":
         return (
           <Input
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, maskDocument(e.target.value))}
             onBlur={() => validateField(field, value)}
@@ -145,6 +155,7 @@ export function CustomFieldsRenderer({
       case "zip":
         return (
           <Input
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, maskCEP(e.target.value))}
             onBlur={() => validateField(field, value)}
@@ -156,6 +167,7 @@ export function CustomFieldsRenderer({
       case "plate":
         return (
           <Input
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, maskPlate(e.target.value))}
             onBlur={() => validateField(field, value)}
@@ -167,6 +179,7 @@ export function CustomFieldsRenderer({
       case "number":
         return (
           <Input
+            {...a11y}
             type="number"
             value={value as number}
             onChange={(e) => updateFieldValue(field.id, parseFloat(e.target.value) || 0)}
@@ -177,6 +190,7 @@ export function CustomFieldsRenderer({
       case "date":
         return (
           <DatePicker
+            {...a11y}
             value={(value as string) ?? ""}
             onChange={(next) => updateFieldValue(field.id, next)}
           />
@@ -187,7 +201,7 @@ export function CustomFieldsRenderer({
             value={value as string}
             onValueChange={(v) => updateFieldValue(field.id, v)}
           >
-            <SelectTrigger className="input-field">
+            <SelectTrigger {...a11y} className="input-field">
               <SelectValue placeholder={`Selecione ${field.name.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent>
@@ -203,7 +217,7 @@ export function CustomFieldsRenderer({
       case "multiselect":
         const currentSelected = Array.isArray(value) ? value : [];
         return (
-          <div className="space-y-2 border p-3 rounded-md bg-secondary/20">
+          <div role="group" aria-labelledby={`cf-${field.id}-label`} className="space-y-2 border p-3 rounded-md bg-secondary/20">
              {field.options?.map((option) => (
                 <div key={option} className="flex items-center space-x-2">
                   <Checkbox
@@ -229,16 +243,18 @@ export function CustomFieldsRenderer({
       case "textarea":
         return (
           <textarea
+            {...a11y}
             value={value as string}
             onChange={(e) => updateFieldValue(field.id, e.target.value)}
             placeholder={field.placeholder || `Digite ${field.name.toLowerCase()}`}
-            className="w-full min-h-20 px-3 py-2 text-sm bg-card border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+            className="w-full min-h-20 px-3 py-2 text-base md:text-sm bg-card border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           />
         );
       case "checkbox":
         return (
           <div className="flex items-center gap-2">
             <Switch
+              {...a11y}
               checked={value as boolean}
               onCheckedChange={(checked) => updateFieldValue(field.id, checked)}
             />
@@ -257,12 +273,17 @@ export function CustomFieldsRenderer({
       <div className="space-y-3">
         {fields.map((field) => (
           <div key={field.id} className="space-y-2">
-            <Label className="text-sm flex items-center gap-2">
+            <Label
+              // multiselect é um grupo de caixas: cada opção tem o próprio rótulo
+              htmlFor={field.type === "multiselect" ? undefined : `cf-${field.id}`}
+              id={`cf-${field.id}-label`}
+              className="text-sm flex items-center gap-2"
+            >
               {field.name}
               {field.required && <span className="text-destructive">*</span>}
             </Label>
             {renderFieldInput(field as any)}
-            {errors[field.id] && <p role="alert" className="text-xs font-medium text-destructive">{errors[field.id]}</p>}
+            {errors[field.id] && <p id={`cf-${field.id}-error`} role="alert" className="text-xs font-medium text-destructive">{errors[field.id]}</p>}
           </div>
         ))}
       </div>

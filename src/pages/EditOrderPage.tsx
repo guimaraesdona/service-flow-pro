@@ -357,17 +357,17 @@ export default function EditOrderPage() {
                             step="0.01"
                             min="0"
                             aria-label={`Preço de ${s.name}`}
-                            className="h-8 w-24 text-sm tabular"
+                            className="h-8 max-md:h-10 w-24 text-sm tabular"
                             value={s.price}
                             onChange={(e) => updatePrice(s.name, parseFloat(e.target.value) || 0)}
                           />
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button type="button" size="icon" variant="outline" className="h-9 w-9" aria-label={`Diminuir ${s.name}`} onClick={() => updateQuantity(s.name, -1)}><Minus className="w-4 h-4" /></Button>
+                        <Button type="button" size="icon" variant="outline" className="relative h-9 w-9 max-md:h-9 max-md:w-9 after:absolute after:-inset-1 after:content-['']" aria-label={`Diminuir ${s.name}`} onClick={() => updateQuantity(s.name, -1)}><Minus className="w-4 h-4" /></Button>
                         <span className="w-7 text-center text-sm font-medium tabular" aria-label="Quantidade">{s.quantity}</span>
-                        <Button type="button" size="icon" variant="outline" className="h-9 w-9" aria-label={`Aumentar ${s.name}`} onClick={() => updateQuantity(s.name, 1)}><Plus className="w-4 h-4" /></Button>
-                        <Button type="button" size="icon" variant="ghost" className="h-9 w-9 ml-2 text-muted-foreground hover:text-destructive" aria-label={`Remover ${s.name}`} onClick={() => removeService(s.name)}><X className="w-4 h-4" /></Button>
+                        <Button type="button" size="icon" variant="outline" className="relative h-9 w-9 max-md:h-9 max-md:w-9 after:absolute after:-inset-1 after:content-['']" aria-label={`Aumentar ${s.name}`} onClick={() => updateQuantity(s.name, 1)}><Plus className="w-4 h-4" /></Button>
+                        <Button type="button" size="icon" variant="ghost" className="relative h-9 w-9 max-md:h-9 max-md:w-9 after:absolute after:-inset-1 after:content-[''] ml-2 text-muted-foreground hover:text-destructive" aria-label={`Remover ${s.name}`} onClick={() => removeService(s.name)}><X className="w-4 h-4" /></Button>
                       </div>
                     </li>
                   ))}

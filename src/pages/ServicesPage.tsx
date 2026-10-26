@@ -23,11 +23,11 @@ export default function ServicesPage() {
         <TopNav
           title="Serviços"
           rightAction={
-            <Link to="/servicos/novo">
-              <Button size="icon" variant="ghost" className="text-primary hover:text-primary/80">
+            <Button asChild size="icon" variant="ghost" aria-label="Novo serviço" className="text-primary hover:text-primary/80">
+              <Link to="/servicos/novo">
                 <Plus className="w-5 h-5" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           }
         />
       </div>
@@ -77,7 +77,7 @@ export default function ServicesPage() {
                   <Wrench className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{service.name}</h3>
+                  <h2 className="font-semibold text-foreground truncate">{service.name}</h2>
                   <p className="text-sm text-muted-foreground truncate">{service.description}</p>
                 </div>
                 <div className="text-right">
@@ -94,7 +94,7 @@ export default function ServicesPage() {
             <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
               <Wrench className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum serviço</h3>
+            <h2 className="text-lg font-semibold text-foreground mb-2">Nenhum serviço</h2>
             <p className="text-muted-foreground mb-6">Adicione seu primeiro serviço</p>
             <Link to="/servicos/novo">
               <Button className="btn-primary">

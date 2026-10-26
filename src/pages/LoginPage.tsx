@@ -89,7 +89,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="flex-1 flex flex-col justify-center px-6 py-12">
         <div className="mx-auto w-full max-w-sm">
@@ -105,7 +105,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
+                id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
@@ -114,17 +114,17 @@ export default function LoginPage() {
                   if (errors.email) validateField("email", e.target.value);
                 }}
                 onBlur={() => handleBlur("email", email)}
-                className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 required
               />
-              {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
+              {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Input
-                  id="password"
+                  id="password" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : undefined}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
@@ -133,18 +133,20 @@ export default function LoginPage() {
                     if (errors.password) validateField("password", e.target.value);
                   }}
                   onBlur={() => handleBlur("password", password)}
-                  className={`input-field pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`input-field pr-11 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.password}</p>}
+              {errors.password && <p id="password-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.password}</p>}
             </div>
 
             <div className="text-right">
@@ -174,6 +176,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

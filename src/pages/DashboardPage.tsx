@@ -107,7 +107,7 @@ export default function DashboardPage() {
           <section className="card-elevated lg:col-span-3">
             <div className="flex items-center justify-between px-4 h-12 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">Em aberto</h2>
-              <Link to="/ordens" className="text-sm font-medium text-primary hover:underline underline-offset-4">Ver todas</Link>
+              <Link to="/ordens" className="relative text-sm font-medium text-primary hover:underline underline-offset-4 after:absolute after:-inset-x-2 after:-inset-y-3 after:content-['']">Ver todas</Link>
             </div>
             {attention.length === 0 ? (
               <div className="p-8 text-center">

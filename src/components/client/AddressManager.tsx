@@ -182,60 +182,68 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Identificação *</Label>
+                <Label htmlFor="address-label">Identificação *</Label>
                 <div className="space-y-1">
                   <Input
+                    id="address-label"
+                    aria-invalid={!!errors.label} aria-describedby={errors.label ? "address-label-error" : undefined}
                     placeholder="Ex: Casa, Trabalho, Escritório..."
                     value={formData.label}
                     onChange={(e) => updateField("label", e.target.value)}
                     onBlur={() => handleBlur("label")}
-                    className={`input-field ${errors.label ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    className={`input-field ${errors.label ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   />
-                  {errors.label && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.label}</p>}
+                  {errors.label && <p id="address-label-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.label}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>CEP *</Label>
+                  <Label htmlFor="address-cep">CEP *</Label>
                   <div className="space-y-1">
                     <Input
+                      id="address-cep"
+                      aria-invalid={!!errors.cep} aria-describedby={errors.cep ? "address-cep-error" : undefined}
                       placeholder="00000-000"
                       value={formData.cep}
                       onChange={(e) => updateField("cep", e.target.value)}
                       onBlur={() => handleBlur("cep")}
-                      className={`input-field ${errors.cep ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.cep ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       maxLength={9}
                     />
-                    {errors.cep && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.cep}</p>}
+                    {errors.cep && <p id="address-cep-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.cep}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Número *</Label>
+                  <Label htmlFor="address-number">Número *</Label>
                   <div className="space-y-1">
                     <Input
+                      id="address-number"
+                      aria-invalid={!!errors.number} aria-describedby={errors.number ? "address-number-error" : undefined}
                       placeholder="000"
                       value={formData.number}
                       onChange={(e) => updateField("number", e.target.value)}
                       onBlur={() => handleBlur("number")}
-                      className={`input-field ${errors.number ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.number ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.number && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.number}</p>}
+                    {errors.number && <p id="address-number-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.number}</p>}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Logradouro *</Label>
+                <Label htmlFor="address-street">Logradouro *</Label>
                 <div className="space-y-1">
                   <Input
+                    id="address-street"
+                    aria-invalid={!!errors.street} aria-describedby={errors.street ? "address-street-error" : undefined}
                     placeholder="Rua, Avenida..."
                     value={formData.street}
                     onChange={(e) => updateField("street", e.target.value)}
                     onBlur={() => handleBlur("street")}
-                    className={`input-field ${errors.street ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    className={`input-field ${errors.street ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   />
-                  {errors.street && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.street}</p>}
+                  {errors.street && <p id="address-street-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.street}</p>}
                 </div>
               </div>
 
@@ -250,45 +258,51 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
               </div>
 
               <div className="space-y-2">
-                <Label>Bairro *</Label>
+                <Label htmlFor="address-neighborhood">Bairro *</Label>
                 <div className="space-y-1">
                   <Input
+                    id="address-neighborhood"
+                    aria-invalid={!!errors.neighborhood} aria-describedby={errors.neighborhood ? "address-neighborhood-error" : undefined}
                     placeholder="Seu bairro"
                     value={formData.neighborhood}
                     onChange={(e) => updateField("neighborhood", e.target.value)}
                     onBlur={() => handleBlur("neighborhood")}
-                    className={`input-field ${errors.neighborhood ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    className={`input-field ${errors.neighborhood ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   />
-                  {errors.neighborhood && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.neighborhood}</p>}
+                  {errors.neighborhood && <p id="address-neighborhood-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.neighborhood}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2 space-y-2">
-                  <Label>Cidade *</Label>
+                  <Label htmlFor="address-city">Cidade *</Label>
                   <div className="space-y-1">
                     <Input
+                      id="address-city"
+                      aria-invalid={!!errors.city} aria-describedby={errors.city ? "address-city-error" : undefined}
                       placeholder="Sua cidade"
                       value={formData.city}
                       onChange={(e) => updateField("city", e.target.value)}
                       onBlur={() => handleBlur("city")}
-                      className={`input-field ${errors.city ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.city ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.city && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.city}</p>}
+                    {errors.city && <p id="address-city-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.city}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>UF *</Label>
+                  <Label htmlFor="address-state">UF *</Label>
                   <div className="space-y-1">
                     <Input
+                      id="address-state"
+                      aria-invalid={!!errors.state} aria-describedby={errors.state ? "address-state-error" : undefined}
                       placeholder="UF"
                       maxLength={2}
                       value={formData.state}
                       onChange={(e) => updateField("state", e.target.value.toUpperCase())}
                       onBlur={() => handleBlur("state")}
-                      className={`input-field ${errors.state ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.state ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.state && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.state}</p>}
+                    {errors.state && <p id="address-state-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.state}</p>}
                   </div>
                 </div>
               </div>
@@ -356,8 +370,8 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
                       onClick={() => handleSetDefault(address.id)}
+                      aria-label={`Definir ${address.label} como padrão`}
                       title="Definir como padrão"
                     >
                       <MapPin className="w-4 h-4" />
@@ -367,8 +381,8 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
                     onClick={() => handleOpenDialog(address)}
+                    aria-label={`Editar endereço ${address.label}`}
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -376,8 +390,9 @@ export function AddressManager({ addresses, onAddressesChange }: AddressManagerP
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive"
                     onClick={() => handleDeleteAddress(address.id)}
+                    aria-label={`Excluir endereço ${address.label}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

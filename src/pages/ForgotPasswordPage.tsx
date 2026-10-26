@@ -40,11 +40,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between h-14 px-4">
-          <Link to="/" className="p-2 -ml-2 text-foreground hover:text-primary transition-colors">
+          <Link to="/" aria-label="Voltar" className="w-11 h-11 -ml-3 flex items-center justify-center rounded-md text-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-lg font-semibold text-foreground">Recuperar senha</h1>
@@ -107,6 +107,6 @@ export default function ForgotPasswordPage() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

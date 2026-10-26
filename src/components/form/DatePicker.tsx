@@ -21,6 +21,7 @@ interface DatePickerProps {
   /** Datas antigas (nascimento, abertura da empresa): mostra seletores de mês e ano. */
   historical?: boolean;
   onBlur?: () => void;
+  "aria-describedby"?: string;
 }
 
 const toDate = (value: string) => {
@@ -39,6 +40,7 @@ export function DatePicker({
   className,
   historical,
   onBlur,
+  "aria-describedby": describedBy,
 }: DatePickerProps) {
   const coarse = useCoarsePointer();
   const [open, setOpen] = useState(false);
@@ -53,6 +55,7 @@ export function DatePicker({
         value={value}
         disabled={disabled}
         aria-invalid={invalid}
+        aria-describedby={describedBy}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         className={cn("input-field", invalid && "border-destructive", className)}
@@ -76,6 +79,7 @@ export function DatePicker({
             variant="outline"
             disabled={disabled}
             aria-invalid={invalid}
+            aria-describedby={describedBy}
             className={cn(
               "w-full h-11 justify-start gap-2 px-3 font-normal tabular bg-card border-input hover:bg-card hover:text-foreground",
               !selected && "text-muted-foreground",

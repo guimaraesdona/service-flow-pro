@@ -261,4 +261,16 @@
       transform: scale(1);
     }
   }
+
+  /* Movimento reduzido: a entrada continua (fade curto), sem deslocamento nem escala. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-up,
+    .animate-scale-in {
+      animation: fadeIn 0.15s ease-out forwards;
+    }
+
+    .animate-fade-in {
+      animation-duration: 0.15s;
+    }
+  }
 }

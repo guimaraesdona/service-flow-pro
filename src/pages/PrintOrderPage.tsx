@@ -89,7 +89,7 @@ export default function PrintOrderPage() {
             title="Visualização de Impressão"
             showBack
             rightAction={
-              <Button onClick={() => handlePrint()} size="icon" variant="ghost">
+              <Button onClick={() => handlePrint()} size="icon" variant="ghost" aria-label="Imprimir">
                 <Printer className="w-5 h-5 text-primary" />
               </Button>
             }

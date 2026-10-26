@@ -244,7 +244,7 @@ Raio base de 8px (`--radius`) em cards e na folha de linhas; 6px em botões, cam
 ### Buttons
 Diretos e sóbrios: cor plana, sem gradiente, sem elevação.
 - **Shape:** cantos suaves (6px).
-- **Primary:** fundo `primary`, texto branco, 14px/500. Altura de 40px no desktop, 44px no celular (`.btn-primary` e ações do detalhe), 36px dentro do cabeçalho desktop. Hover a 90% de opacidade do fundo.
+- **Primary:** fundo `primary`, texto branco, 14px/500. Altura de 40px no desktop e no mínimo 44px no celular, já no componente base (`max-md:h-11` em `Button`, `Input`, `SelectTrigger`); 36px dentro do cabeçalho desktop. Elemento que precisa ficar menor no visual (chips de filtro, botões de quantidade, interruptor, abas) mantém o tamanho e ganha área de toque de 44px com um `::after` posicionado. Hover a 90% de opacidade do fundo.
 - **Outline:** borda 1px, fundo de card; ações secundárias como Imprimir, Editar e desvios de status.
 - **Ghost / ícone:** ações em ícone no topo do celular (Imprimir, Editar) sempre com `aria-label`.
 - **Quiet / Danger:** botão fantasma de 40px em `muted-foreground` ("Cancelar OS") ou `destructive` com hover a 10% ("Excluir OS"); ambos passam por um diálogo de confirmação.
@@ -266,7 +266,7 @@ Pílula `inline-flex` com ponto de 6px no tom sólido, fundo `-bg`, texto `-fg`,
 - **Resumo por status:** um único card segmentado (2×2 no celular, 4 colunas no desktop) com divisórias; cada célula tem ponto + plural + número de 24px e abre a lista filtrada.
 
 ### Inputs / Fields
-- **Style:** borda 1px `input`, fundo `card`, raio 6px, padding 8px 12px; 40px de altura por padrão, 44px nos formulários de OS (`.input-field`); texto 16px no celular e 14px a partir de `md`.
+- **Style:** borda 1px `input`, fundo `card`, raio 6px, padding 8px 12px; 40px de altura no desktop, 44px no celular (base do componente) e 44px em todas as larguras nos formulários de OS (`.input-field`); texto 16px no celular e 14px a partir de `md` (inclui `Textarea` e `SelectTrigger`). Erro de campo: mensagem com `id`, `role="alert"` e `text-destructive`, ligada ao campo por `aria-describedby` e `aria-invalid`.
 - **Focus:** anel de 2px `ring` com afastamento de 2px.
 - **Error:** borda `destructive`, `aria-invalid`, mensagem abaixo em 12px/500 `destructive` com `role="alert"`.
 - **Busca:** ícone de lupa à esquerda (padding 36px); no desktop leva um `kbd` "/" à direita.

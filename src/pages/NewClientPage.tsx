@@ -210,14 +210,14 @@ export default function NewClientPage() {
                   <Label htmlFor="name">Nome / Razão Social *</Label>
                   <div className="space-y-1">
                     <Input
-                      id="name"
+                      id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
                       placeholder="Nome completo"
                       value={formData.name}
                       onChange={(e) => updateField("name", e.target.value)}
                       onBlur={() => handleBlur("name")}
-                      className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+                    {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
                   </div>
                 </div>
 
@@ -225,15 +225,15 @@ export default function NewClientPage() {
                   <Label htmlFor="email">Email *</Label>
                   <div className="space-y-1">
                     <Input
-                      id="email"
+                      id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
                       type="email"
                       placeholder="email@exemplo.com"
                       value={formData.email}
                       onChange={(e) => updateField("email", e.target.value)}
                       onBlur={() => handleBlur("email")}
-                      className={`input-field ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.email && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.email}</p>}
+                    {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
                   </div>
                 </div>
 
@@ -242,15 +242,15 @@ export default function NewClientPage() {
                     <Label htmlFor="document">CPF / CNPJ *</Label>
                     <div className="space-y-1">
                       <Input
-                        id="document"
+                        id="document" aria-invalid={!!errors.document} aria-describedby={errors.document ? "document-error" : undefined}
                         placeholder="000.000.000-00"
                         value={formData.document}
                         onChange={(e) => updateField("document", e.target.value)}
                         onBlur={() => handleBlur("document")}
-                        className={`input-field ${errors.document ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                        className={`input-field ${errors.document ? "border-destructive focus-visible:ring-destructive" : ""}`}
                         maxLength={18}
                       />
-                      {errors.document && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.document}</p>}
+                      {errors.document && <p id="document-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.document}</p>}
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -273,16 +273,16 @@ export default function NewClientPage() {
                   <Label htmlFor="phone">Telefone *</Label>
                   <div className="space-y-1">
                     <Input
-                      id="phone"
+                      id="phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-error" : undefined}
                       type="tel"
                       placeholder="(00) 00000-0000"
                       value={formData.phone}
                       onChange={(e) => updateField("phone", e.target.value)}
                       onBlur={() => handleBlur("phone")}
-                      className={`input-field ${errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`input-field ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       maxLength={15}
                     />
-                    {errors.phone && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.phone}</p>}
+                    {errors.phone && <p id="phone-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.phone}</p>}
                   </div>
                 </div>
               </div>

@@ -98,17 +98,17 @@ export default function ReportsPage() {
           {/* Filters */}
           <div className="lg:col-span-1">
             <div className="card-elevated p-6 mb-6 lg:mb-0 animate-fade-in">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 Filtros do Relatório
-              </h3>
+              </h2>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label>Mês</Label>
+                    <Label htmlFor="report-month">Mês</Label>
                     <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                      <SelectTrigger>
+                      <SelectTrigger id="report-month">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -122,9 +122,9 @@ export default function ReportsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Ano</Label>
+                    <Label htmlFor="report-year">Ano</Label>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                      <SelectTrigger>
+                      <SelectTrigger id="report-year">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -139,12 +139,12 @@ export default function ReportsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
+                  <Label htmlFor="report-client" className="flex items-center gap-2">
+                    <User className="w-4 h-4" aria-hidden="true" />
                     Cliente
                   </Label>
                   <Select value={selectedClient} onValueChange={setSelectedClient}>
-                    <SelectTrigger>
+                    <SelectTrigger id="report-client">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -165,14 +165,14 @@ export default function ReportsPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Preview */}
             <div className="card-elevated p-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5" />
                 Prévia do Relatório
-              </h3>
+              </h2>
 
               <div className="bg-secondary/50 rounded-lg p-4">
                 <div className="text-center mb-4">
-                  <h4 className="text-lg font-bold text-foreground">Relatório de Ordens de Serviço</h4>
+                  <h3 className="text-lg font-bold text-foreground">Relatório de Ordens de Serviço</h3>
                   <p className="text-sm text-muted-foreground">
                     {getMonthName(selectedMonth)} de {selectedYear}
                   </p>
@@ -206,10 +206,10 @@ export default function ReportsPage() {
 
             {/* Export Options */}
             <div className="card-elevated p-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Download className="w-5 h-5" />
                 Exportar Relatório
-              </h3>
+              </h2>
 
               <p className="text-sm text-muted-foreground mb-3">
                 Em breve. Por enquanto, use a impressão de cada ordem.
