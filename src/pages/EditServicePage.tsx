@@ -17,7 +17,7 @@ import { ImageUploader } from "@/components/form/ImageUploader";
 export default function EditServicePage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { services, updateService } = useServices();
+  const { services, isLoading, updateService } = useServices();
   const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("service");
 
   const { deleteImage } = useStorage();
@@ -33,6 +33,8 @@ export default function EditServicePage() {
 
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (service) {
@@ -52,6 +54,16 @@ export default function EditServicePage() {
       }
     }
   }, [service]);
+
+  if (isLoading) {
+    return (
+      <div className="page-container bg-background">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!service) {
     return (
@@ -77,8 +89,6 @@ export default function EditServicePage() {
     }
   };
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
 
   const validateField = (field: string, value: string) => {
     let error = "";
@@ -214,15 +224,15 @@ export default function EditServicePage() {
           <div className="space-y-2">
             <Label htmlFor="name">Nome do Serviço *</Label>
             <Input
-              id="name"
+              id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
               placeholder="Ex: Manutenção Preventiva"
               value={formData.name}
               onChange={(e) => updateField("name", e.target.value)}
               onBlur={() => handleBlur("name")}
-              className={`input-field ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+              className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
               required
             />
-            {errors.name && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.name}</p>}
+            {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
@@ -232,24 +242,24 @@ export default function EditServicePage() {
               placeholder="Descreva o serviço..."
               value={formData.description}
               onChange={(e) => updateField("description", e.target.value)}
-              className="min-h-24 bg-secondary/50 border-0 focus:ring-2 focus:ring-primary/20 resize-none"
+              className="min-h-24 resize-none"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="price">Valor Base (R$) *</Label>
             <Input
-              id="price"
+              id="price" aria-invalid={!!errors.price} aria-describedby={errors.price ? "price-error" : undefined}
               type="number"
               step="0.01"
               placeholder="0,00"
               value={formData.price}
               onChange={(e) => updateField("price", e.target.value)}
               onBlur={() => handleBlur("price")}
-              className={`input-field ${errors.price ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+              className={`input-field ${errors.price ? "border-destructive focus-visible:ring-destructive" : ""}`}
               required
             />
-            {errors.price && <p className="text-xs font-semibold text-red-500 animate-fade-in">{errors.price}</p>}
+            {errors.price && <p id="price-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.price}</p>}
           </div>
 
           <CustomFieldsRenderer
