@@ -230,12 +230,7 @@ export function CustomFieldsSettings() {
   };
 
   return (
-    <div className="card-elevated p-6 animate-fade-in">
-      <h3 className="font-semibold text-foreground mb-4">Campos Personalizados</h3>
-      <p className="text-sm text-muted-foreground mb-4">
-        Configure campos adicionais para ordens de serviço, clientes e serviços.
-      </p>
-
+    <div>
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as EntityType)}>
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="order">Ordens</TabsTrigger>

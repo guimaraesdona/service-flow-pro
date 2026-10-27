@@ -1,497 +1,166 @@
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Building, ChevronRight, ListPlus, LogOut, MapPin, Palette, type LucideIcon } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "@/hooks/use-toast";
 import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
+import { AddressSettings, AppearanceSettings, CompanySettings } from "@/components/settings/ProfileSections";
 import { useTheme } from "@/components/theme-provider";
-import {
-  Mail,
-  Phone,
-  Building,
-  Moon,
-  Sun,
-  Save,
-  LogOut,
-  MapPin,
-  Calendar,
-} from "lucide-react";
-import { ImageUploader } from "@/components/form/ImageUploader";
-import { useStorage } from "@/hooks/useStorage";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDesktop } from "@/hooks/use-desktop";
 import { useProfile } from "@/hooks/useProfile";
-import { maskPhone, maskDocument, maskCEP } from "@/utils/masks";
-import { validateEmail, validateDocument } from "@/utils/validations";
-import { DatePicker } from "@/components/form/DatePicker";
+import { cn } from "@/lib/utils";
+import { Profile } from "@/types";
 
-export default function SettingsPage() {
+interface Section {
+  slug: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  Content: () => JSX.Element;
+}
+
+const SECTIONS: Section[] = [
+  { slug: "empresa", label: "Empresa", description: "Logo, nome e contato que saem na OS impressa.", icon: Building, Content: CompanySettings },
+  { slug: "endereco", label: "Endereço", description: "Endereço da empresa na OS impressa.", icon: MapPin, Content: AddressSettings },
+  { slug: "aparencia", label: "Aparência", description: "Tema do aplicativo neste aparelho.", icon: Palette, Content: AppearanceSettings },
+  {
+    slug: "campos",
+    label: "Campos personalizados",
+    description: "Campos extras nos cadastros de ordens, clientes e serviços.",
+    icon: ListPlus,
+    Content: CustomFieldsSettings,
+  },
+];
+
+const THEME_LABEL = { light: "Claro", dark: "Escuro", system: "Automático" } as const;
+
+// Resumo do que está salvo em cada seção, para a lista do celular.
+const summary = (slug: string, profile: Profile | null | undefined, theme: keyof typeof THEME_LABEL) => {
+  if (slug === "empresa") return profile?.name || "Não preenchido";
+  if (slug === "endereco") return [profile?.city, profile?.state].filter(Boolean).join(" / ") || "Não preenchido";
+  if (slug === "aparencia") return THEME_LABEL[theme];
+  return "Ordens, clientes e serviços";
+};
+
+function useLogout() {
+  const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  // Remove local isLoading state in favor of mutation status if desired, but keeping generally fine.
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Remove local isLoading state in favor of mutation status if desired, but keeping generally fine.
-
-
-  const { deleteImage } = useStorage();
-  const { profile, updateProfile } = useProfile();
-
-
-  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-  const [userData, setUserData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    document: "",
-    avatar_url: "",
-    use_logo_for_print: true,
-    birth_date: "",
-    cep: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: ""
-  });
-
-  // Load profile data when available
-  useEffect(() => {
-    if (profile) {
-      setUserData({
-        name: profile.name || "",
-        email: profile.email || "",
-        phone: profile.phone || "",
-        document: profile.document || "",
-        avatar_url: profile.avatar_url || "",
-        use_logo_for_print: profile.use_logo_for_print ?? true,
-        birth_date: profile.birth_date || "",
-        cep: profile.cep || "",
-        street: profile.street || "",
-        number: profile.number || "",
-        complement: profile.complement || "",
-        neighborhood: profile.neighborhood || "",
-        city: profile.city || "",
-        state: profile.state || ""
-      });
-    }
-  }, [profile]);
-
-  const toggleDarkMode = (enabled: boolean) => {
-    setTheme(enabled ? "dark" : "light");
-  };
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateField = (field: string, value: string) => {
-    let error = "";
-
-    // Check mandatory fields (except avatar_url and complement which are optional)
-    if (!value && field !== "avatar_url" && field !== "complement" && field !== "use_logo_for_print") {
-      error = "Campo obrigatório";
-    }
-
-    if (!error) {
-      if (field === "email" && value && !validateEmail(value)) {
-        error = "Email inválido";
-      }
-      if (field === "document" && value) {
-        if (!validateDocument(value)) {
-          error = "CPF/CNPJ inválido";
-        }
-      }
-    }
-
-    setErrors((prev) => ({ ...prev, [field]: error }));
-    return !error;
-  };
-
-  const handleBlur = (field: string) => {
-    validateField(field, userData[field as keyof typeof userData] as string);
-  };
-
-  const updateField = (field: string, value: string) => {
-    setUserData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
-  const handleImageChange = async (newUrl: string) => {
-    const currentUrl = userData.avatar_url;
-    // Check if we are replacing a transient image
-    if (currentUrl && currentUrl !== profile?.avatar_url && currentUrl !== newUrl) {
-      try {
-        await deleteImage(currentUrl);
-      } catch (error) {
-        console.error("Failed to delete transient image:", error);
-      }
-    }
-    updateField("avatar_url", newUrl);
-  };
-
-  const handleSave = async () => {
-    // Validate all fields
-    const fieldsToValidate = [
-      "name", "email", "phone", "document", "birth_date",
-      "cep", "street", "number", "neighborhood", "city", "state"
-    ];
-
-    let hasErrors = false;
-    fieldsToValidate.forEach(field => {
-      const isValid = validateField(field, userData[field as keyof typeof userData] as string);
-      if (!isValid) hasErrors = true;
-    });
-
-    if (hasErrors) {
-      toast({
-        title: "Campos inválidos",
-        description: "Por favor, corrija os erros destacados antes de salvar.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await updateProfile.mutateAsync({
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        document: userData.document,
-        avatar_url: userData.avatar_url,
-        use_logo_for_print: userData.use_logo_for_print,
-        birth_date: userData.birth_date,
-        cep: userData.cep,
-        street: userData.street,
-        number: userData.number,
-        complement: userData.complement,
-        neighborhood: userData.neighborhood,
-        city: userData.city,
-        state: userData.state,
-      });
-
-      // If avatar changed and there was an old one, delete the old one
-      if (profile?.avatar_url && profile.avatar_url !== userData.avatar_url) {
-        await deleteImage(profile.avatar_url);
-      }
-
-      toast({
-        title: "Configurações salvas!",
-        description: "Suas alterações foram salvas com sucesso.",
-      });
-    } catch (error: any) {
-      console.error("Save error:", error);
-      let errorMessage = error.message || "Ocorreu um erro ao salvar as configurações.";
-
-      if (errorMessage.includes("invalid input syntax for type date")) {
-        errorMessage = "Data de nascimento inválida. Verifique o formato.";
-      }
-
-      toast({
-        title: "Erro ao salvar",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleLogout = () => {
+  return async () => {
+    await signOut();
     navigate("/");
   };
+}
+
+function SectionPanel({ section }: { section: Section }) {
+  return (
+    <section aria-labelledby={`settings-${section.slug}`} className="card-elevated p-5 lg:p-6">
+      {/* No celular o título já está no TopNav. */}
+      <h2 id={`settings-${section.slug}`} className="sr-only lg:not-sr-only text-base font-semibold text-foreground">
+        {section.label}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-5 lg:mt-1">{section.description}</p>
+      <section.Content />
+    </section>
+  );
+}
+
+// Celular: a raiz é uma lista de seções e cada uma abre em tela própria.
+function MobileSettings({ section }: { section?: Section }) {
+  const { profile } = useProfile();
+  const { theme } = useTheme();
+  const logout = useLogout();
+
+  if (section) {
+    return (
+      <div>
+        <TopNav title={section.label} showBack backTo="/configuracoes" />
+        <div className="content-container">
+          <SectionPanel section={section} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <TopNav title="Configurações" />
+      <div className="content-container space-y-4">
+        <nav aria-label="Seções das configurações">
+          <ul className="card-elevated divide-y divide-border">
+            {SECTIONS.map(({ slug, label, icon: Icon }) => (
+              <li key={slug}>
+                <Link to={`/configuracoes/${slug}`} className="flex items-center gap-3 px-4 min-h-16 py-3 active:bg-muted/60">
+                  <span className="w-9 h-9 shrink-0 rounded-lg bg-accent text-accent-foreground flex items-center justify-center">
+                    <Icon className="w-[18px] h-[18px]" aria-hidden="true" />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium text-foreground">{label}</span>
+                    <span className="block text-xs text-muted-foreground truncate">{summary(slug, profile, theme)}</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <button
+          type="button"
+          onClick={logout}
+          className="card-elevated w-full flex items-center gap-3 px-4 h-14 text-sm font-medium text-destructive active:bg-destructive/10"
+        >
+          <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
+          Sair da conta
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Desktop: menu lateral e a seção aberta ao lado (o "Sair" fica no Sidebar).
+function DesktopSettings({ section }: { section: Section }) {
+  return (
+    <div>
+      <DesktopHeader title="Configurações" />
+      <div className="content-container grid grid-cols-[15rem_minmax(0,1fr)] gap-8 items-start">
+        <nav aria-label="Seções das configurações" className="sticky top-24 space-y-0.5">
+          {SECTIONS.map(({ slug, label, icon: Icon }) => {
+            const active = slug === section.slug;
+            return (
+              <Link
+                key={slug}
+                to={`/configuracoes/${slug}`}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-3 px-3 h-9 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
+                  active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                <Icon className="w-4 h-4" aria-hidden="true" />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="max-w-2xl">
+          <SectionPanel section={section} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  const { section: slug } = useParams();
+  const section = SECTIONS.find((s) => s.slug === slug);
+  const desktop = useDesktop();
+
+  if (slug && !section) return <Navigate to="/configuracoes" replace />;
 
   return (
     <div className="page-container bg-background">
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <TopNav title="Configurações" showBack />
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        <DesktopHeader title="Configurações" />
-      </div>
-
-      <div className="content-container lg:grid lg:grid-cols-2 lg:gap-8">
-        {/* Profile Section */}
-        <div className="card-elevated p-6 mb-6 animate-fade-in">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative">
-              <ImageUploader
-                value={userData.avatar_url}
-                onChange={(url) => updateField("avatar_url", url)}
-                previewClassName="w-16 h-16"
-              />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{userData.name || "Sua Empresa"}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                 <Switch
-                    id="use_logo"
-                    checked={userData.use_logo_for_print}
-                    onCheckedChange={(checked) => setUserData(prev => ({ ...prev, use_logo_for_print: checked }))}
-                  />
-                  <Label htmlFor="use_logo" className="text-xs text-muted-foreground cursor-pointer">
-                    Usar logo na impressão
-                  </Label>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
-                <Building className="w-4 h-4" />
-                Nome / Razão Social
-              </Label>
-              <Input
-                id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
-                value={userData.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                onBlur={() => handleBlur("name")}
-                className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                placeholder="Ex: Minha Empresa LTDA"
-              />
-              {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email
-              </Label>
-              <div className="space-y-1">
-                <Input
-                  id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
-                  type="email"
-                  value={userData.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  onBlur={() => handleBlur("email")}
-                  className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="Ex: contato@minhaempresa.com"
-                />
-                {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                Telefone
-              </Label>
-              <Input
-                id="phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-error" : undefined}
-                type="tel"
-                value={userData.phone}
-                onChange={(e) => updateField("phone", maskPhone(e.target.value))}
-                onBlur={() => handleBlur("phone")}
-                className={`input-field ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                placeholder="Ex: (11) 99999-9999"
-                maxLength={15}
-              />
-              {errors.phone && <p id="phone-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.phone}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="document">CPF / CNPJ</Label>
-              <div className="space-y-1">
-                <Input
-                  id="document" aria-invalid={!!errors.document} aria-describedby={errors.document ? "document-error" : undefined}
-                  value={userData.document}
-                  onChange={(e) => updateField("document", maskDocument(e.target.value))}
-                  onBlur={() => handleBlur("document")}
-                  className={`input-field ${errors.document ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="Ex: 000.000.000-00"
-                  maxLength={18}
-                />
-                {errors.document && <p id="document-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.document}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="birth_date" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Data de Nascimento / Abertura
-              </Label>
-              <div className="space-y-1">
-                <DatePicker
-                  id="birth_date"
-                  historical
-                  value={userData.birth_date}
-                  invalid={!!errors.birth_date}
-                  onChange={(next) => updateField("birth_date", next)}
-                  onBlur={() => handleBlur("birth_date")}
-                />
-                {errors.birth_date && <p role="alert" className="text-xs font-medium text-destructive">{errors.birth_date}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Address Section */}
-        <div className="card-elevated p-6 mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Endereço
-          </h3>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="cep">CEP</Label>
-                <Input
-                  id="cep" aria-invalid={!!errors.cep} aria-describedby={errors.cep ? "cep-error" : undefined}
-                  value={userData.cep}
-                  onChange={(e) => updateField("cep", maskCEP(e.target.value))}
-                  onBlur={() => handleBlur("cep")}
-                  className={`input-field ${errors.cep ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="00000-000"
-                  maxLength={9}
-                />
-                {errors.cep && <p id="cep-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.cep}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="street">Logradouro</Label>
-              <Input
-                id="street" aria-invalid={!!errors.street} aria-describedby={errors.street ? "street-error" : undefined}
-                value={userData.street}
-                onChange={(e) => updateField("street", e.target.value)}
-                onBlur={() => handleBlur("street")}
-                className={`input-field ${errors.street ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                placeholder="Rua, Avenida..."
-              />
-              {errors.street && <p id="street-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.street}</p>}
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="number">Número</Label>
-                <Input
-                  id="number" aria-invalid={!!errors.number} aria-describedby={errors.number ? "number-error" : undefined}
-                  value={userData.number}
-                  onChange={(e) => updateField("number", e.target.value)}
-                  onBlur={() => handleBlur("number")}
-                  className={`input-field ${errors.number ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="000"
-                />
-                {errors.number && <p id="number-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.number}</p>}
-              </div>
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="complement">Complemento</Label>
-                <Input
-                  id="complement"
-                  value={userData.complement}
-                  onChange={(e) => updateField("complement", e.target.value)}
-                  className="input-field"
-                  placeholder="Apto, Sala..."
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
-              <Input
-                id="neighborhood" aria-invalid={!!errors.neighborhood} aria-describedby={errors.neighborhood ? "neighborhood-error" : undefined}
-                value={userData.neighborhood}
-                onChange={(e) => updateField("neighborhood", e.target.value)}
-                onBlur={() => handleBlur("neighborhood")}
-                className={`input-field ${errors.neighborhood ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                placeholder="Seu bairro"
-              />
-              {errors.neighborhood && <p id="neighborhood-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.neighborhood}</p>}
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="city">Cidade</Label>
-                <Input
-                  id="city" aria-invalid={!!errors.city} aria-describedby={errors.city ? "city-error" : undefined}
-                  value={userData.city}
-                  onChange={(e) => updateField("city", e.target.value)}
-                  onBlur={() => handleBlur("city")}
-                  className={`input-field ${errors.city ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="Sua cidade"
-                />
-                {errors.city && <p id="city-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.city}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">Estado</Label>
-                <Input
-                  id="state" aria-invalid={!!errors.state} aria-describedby={errors.state ? "state-error" : undefined}
-                  value={userData.state}
-                  onChange={(e) => updateField("state", e.target.value)}
-                  onBlur={() => handleBlur("state")}
-                  className={`input-field ${errors.state ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  placeholder="UF"
-                />
-                {errors.state && <p id="state-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.state}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Appearance Section */}
-        <div className="card-elevated p-6 mb-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <h3 className="font-semibold text-foreground mb-4">Aparência</h3>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {isDarkMode ? (
-                <Moon className="w-5 h-5 text-primary" />
-              ) : (
-                <Sun className="w-5 h-5 text-primary" />
-              )}
-              <div>
-                <p className="text-sm font-medium text-foreground">Tema Escuro</p>
-                <p className="text-xs text-muted-foreground">
-                  {isDarkMode ? "Ativado" : "Desativado"}
-                </p>
-              </div>
-            </div>
-            <Switch
-              aria-label="Tema escuro"
-              checked={isDarkMode}
-              onCheckedChange={toggleDarkMode}
-            />
-          </div>
-        </div>
-
-        {/* Custom Fields Section */}
-        <div className="lg:col-span-2">
-          <CustomFieldsSettings />
-        </div>
-
-        {/* Actions */}
-        <div className="space-y-3 animate-slide-up lg:col-span-2" style={{ animationDelay: "0.2s" }}>
-          <Button
-            onClick={handleSave}
-            className="w-full lg:w-auto btn-primary"
-            disabled={isSaving}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? "Salvando..." : "Salvar Alterações"}
-          </Button>
-
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="w-full lg:w-auto lg:ml-3"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair da Conta
-          </Button>
-        </div>
-      </div>
+      {desktop ? <DesktopSettings section={section ?? SECTIONS[0]} /> : <MobileSettings section={section} />}
     </div>
   );
 }

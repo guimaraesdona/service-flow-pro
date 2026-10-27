@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 interface TopNavProps {
   title: string;
   showBack?: boolean;
+  /** Destino fixo do voltar; sem ele, volta no histórico. */
+  backTo?: string;
   rightAction?: React.ReactNode;
   className?: string;
 }
 
-export function TopNav({ title, showBack = false, rightAction, className }: TopNavProps) {
+export function TopNav({ title, showBack = false, backTo, rightAction, className }: TopNavProps) {
   const navigate = useNavigate();
 
   return (
@@ -23,7 +25,7 @@ export function TopNav({ title, showBack = false, rightAction, className }: TopN
         <div className="w-11">
           {showBack && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => (backTo ? navigate(backTo) : navigate(-1))}
               aria-label="Voltar"
               className="w-11 h-11 -ml-3 flex items-center justify-center rounded-md text-foreground hover:bg-secondary transition-colors"
             >
