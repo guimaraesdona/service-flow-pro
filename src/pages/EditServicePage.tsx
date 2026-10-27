@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
-import { Camera, X } from "lucide-react";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,6 @@ export default function EditServicePage() {
   const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("service");
 
   const { deleteImage } = useStorage();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const service = services?.find(s => s.id === id);
 
@@ -68,7 +67,10 @@ export default function EditServicePage() {
   if (!service) {
     return (
       <div className="page-container bg-background">
-        <TopNav title="Editar Serviço" showBack />
+        <div className="lg:hidden">
+          <TopNav title="Editar serviço" showBack />
+        </div>
+        <DesktopHeader title="Editar serviço" />
         <div className="content-container">
           <div className="text-center py-16">
             <p className="text-muted-foreground">Serviço não encontrado</p>
@@ -197,85 +199,107 @@ export default function EditServicePage() {
         description: `${formData.name} foi atualizado com sucesso.`,
       });
       navigate(`/servicos/${id}`);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro ao atualizar",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Não foi possível salvar o serviço.",
         variant: "destructive",
       });
     }
   };
 
+  const fieldError = (field: string) =>
+    errors[field] ? (
+      <p id={`${field}-error`} role="alert" className="text-xs font-semibold text-destructive">
+        {errors[field]}
+      </p>
+    ) : null;
+
+  const inputClass = (field: string) =>
+    `input-field ${errors[field] ? "border-destructive focus-visible:ring-destructive" : ""}`;
+
   return (
     <div className="page-container bg-background">
-      <TopNav title="Editar Serviço" showBack />
+      <div className="lg:hidden">
+        <TopNav title="Editar serviço" showBack />
+      </div>
+      <DesktopHeader title="Editar serviço" />
 
       <div className="content-container">
-        <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up">
-          {/* Image */}
-          <div className="flex justify-center mb-6">
+        <form onSubmit={handleSubmit} noValidate className="max-w-2xl mx-auto space-y-4">
+          <section className="card-elevated p-4 lg:p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">Serviço</h2>
+            <ImageUploader value={imageUrl} onChange={handleImageChange} />
 
-            <ImageUploader
-              value={imageUrl}
-              onChange={handleImageChange}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome do serviço *</Label>
+              <Input
+                id="name"
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? "name-error" : undefined}
+                placeholder="Ex: Manutenção preventiva"
+                value={formData.name}
+                onChange={(e) => updateField("name", e.target.value)}
+                onBlur={() => handleBlur("name")}
+                className={inputClass("name")}
+              />
+              {fieldError("name")}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                placeholder="O que está incluído no serviço"
+                value={formData.description}
+                onChange={(e) => updateField("description", e.target.value)}
+                className="min-h-24 resize-none"
+              />
+            </div>
+          </section>
+
+          <section className="card-elevated p-4 lg:p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">Preço</h2>
+            <div className="space-y-2 sm:max-w-xs">
+              <Label htmlFor="price">Valor base (R$) *</Label>
+              <Input
+                id="price"
+                aria-invalid={!!errors.price}
+                aria-describedby={errors.price ? "price-error" : "price-hint"}
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                placeholder="0,00"
+                value={formData.price}
+                onChange={(e) => updateField("price", e.target.value)}
+                onBlur={() => handleBlur("price")}
+                className={`${inputClass("price")} tabular`}
+              />
+              {fieldError("price") ?? (
+                <p id="price-hint" className="text-xs text-muted-foreground">
+                  Sugerido ao adicionar o serviço numa OS; dá para mudar em cada ordem.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {customFieldsDefinitions.length > 0 && (
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Campos personalizados</h2>
+              <CustomFieldsRenderer
+                entityType="service"
+                values={customFieldValues}
+                onValuesChange={setCustomFieldValues}
+                errors={customFieldErrors}
+              />
+            </section>
+          )}
+
+          <div className="flex lg:justify-end">
+            <Button type="submit" className="w-full lg:w-auto lg:px-8 btn-primary" disabled={updateService.isPending}>
+              {updateService.isPending ? "Salvando..." : "Salvar alterações"}
+            </Button>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome do Serviço *</Label>
-            <Input
-              id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
-              placeholder="Ex: Manutenção Preventiva"
-              value={formData.name}
-              onChange={(e) => updateField("name", e.target.value)}
-              onBlur={() => handleBlur("name")}
-              className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              required
-            />
-            {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              placeholder="Descreva o serviço..."
-              value={formData.description}
-              onChange={(e) => updateField("description", e.target.value)}
-              className="min-h-24 resize-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="price">Valor Base (R$) *</Label>
-            <Input
-              id="price" aria-invalid={!!errors.price} aria-describedby={errors.price ? "price-error" : undefined}
-              type="number"
-              step="0.01"
-              placeholder="0,00"
-              value={formData.price}
-              onChange={(e) => updateField("price", e.target.value)}
-              onBlur={() => handleBlur("price")}
-              className={`input-field ${errors.price ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              required
-            />
-            {errors.price && <p id="price-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.price}</p>}
-          </div>
-
-          <CustomFieldsRenderer
-            entityType="service"
-            values={customFieldValues}
-            onValuesChange={setCustomFieldValues}
-            errors={customFieldErrors}
-          />
-
-          <Button
-            type="submit"
-            className="w-full btn-primary mt-6"
-            disabled={updateService.isPending}
-          >
-            {updateService.isPending ? "Salvando..." : "Salvar"}
-          </Button>
         </form>
       </div>
     </div>

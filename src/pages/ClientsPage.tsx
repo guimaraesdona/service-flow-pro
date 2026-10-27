@@ -1,25 +1,26 @@
 import { useState } from "react";
-import { formatPhone } from "@/lib/formatters";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Search } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Plus, Search, Phone, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useClients } from "@/hooks/useClients";
+import { formatDocument, formatPhone } from "@/lib/formatters";
 
 export default function ClientsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const { clients, isLoading } = useClients();
 
-  const filteredClients = clients.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email?.toLowerCase().includes(search.toLowerCase())
+  const term = search.toLowerCase();
+  const filteredClients = clients.filter(
+    (c) => c.name.toLowerCase().includes(term) || c.email?.toLowerCase().includes(term),
   );
 
   return (
     <div className="page-container bg-background">
-      {/* Mobile Header */}
       <div className="lg:hidden">
         <TopNav
           title="Clientes"
@@ -33,83 +34,110 @@ export default function ClientsPage() {
         />
       </div>
 
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        <DesktopHeader
-          title="Clientes"
-          actions={
+      <DesktopHeader
+        title="Clientes"
+        actions={
+          <Button asChild className="h-9">
             <Link to="/clientes/novo">
-              <Button className="btn-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Cliente
-              </Button>
+              <Plus className="w-4 h-4 mr-1.5" />
+              Novo cliente
             </Link>
-          }
-        />
-      </div>
+          </Button>
+        }
+      />
 
-      <div className="content-container">
-        {/* Search */}
-        <div className="relative mb-6 animate-fade-in">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="content-container space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
           <Input
-            placeholder="Buscar clientes..."
+            type="search"
+            aria-label="Buscar clientes"
+            placeholder="Buscar clientes"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 input-field"
+            className="pl-9 input-field"
           />
         </div>
 
-        {/* Client List */}
         {isLoading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : filteredClients.length > 0 ? (
-          <div className="space-y-3 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:gap-4 lg:space-y-0">
-            {filteredClients.map((client, index) => (
-              <Link
-                key={client.id}
-                to={`/clientes/${client.id}`}
-                className="card-elevated p-4 flex items-center gap-4 hover:shadow-soft transition-all animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-6 h-6 text-primary" aria-hidden="true" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-foreground truncate">{client.name}</h2>
-                  {/* Contato embaixo do nome: o nome usa a largura toda do cartão */}
-                  <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1 min-w-0">
-                      <Mail className="w-3 h-3 shrink-0" aria-hidden="true" />
-                      <span className="truncate">{client.email || "Sem email"}</span>
-                    </span>
-                    {client.phone && (
-                      <span className="flex items-center gap-1 tabular">
-                        <Phone className="w-3 h-3 shrink-0" aria-hidden="true" />
-                        {formatPhone(client.phone)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+          <div className="card-elevated divide-y divide-border">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">Nenhum cliente</h2>
-            <p className="text-muted-foreground mb-6">Adicione seu primeiro cliente</p>
-            <Link to="/clientes/novo">
-              <Button className="btn-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Cliente
-              </Button>
-            </Link>
+        ) : clients.length === 0 ? (
+          <div className="card-elevated p-10 text-center">
+            <h2 className="font-semibold text-foreground">Nenhum cliente cadastrado</h2>
+            <p className="text-sm text-muted-foreground mt-1">Cadastre um cliente para abrir ordens de serviço para ele.</p>
+            <Button asChild className="mt-4 h-10">
+              <Link to="/clientes/novo">
+                <Plus className="w-4 h-4 mr-1.5" />
+                Novo cliente
+              </Link>
+            </Button>
           </div>
+        ) : filteredClients.length === 0 ? (
+          <div className="card-elevated p-10 text-center">
+            <p className="font-medium text-foreground">Nenhum cliente encontrado</p>
+            <p className="text-sm text-muted-foreground mt-1">Nada corresponde a essa busca.</p>
+            <Button variant="outline" className="mt-4 h-9" onClick={() => setSearch("")}>
+              Limpar busca
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Desktop: tabela */}
+            <div className="hidden lg:block card-elevated">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
+                    <th scope="col" className="px-4 h-10 font-medium">Nome</th>
+                    <th scope="col" className="px-4 h-10 font-medium">Email</th>
+                    <th scope="col" className="px-4 h-10 font-medium w-44">Telefone</th>
+                    <th scope="col" className="px-4 h-10 font-medium w-48">CPF / CNPJ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredClients.map((client) => (
+                    <tr
+                      key={client.id}
+                      onClick={() => navigate(`/clientes/${client.id}`)}
+                      className="cursor-pointer hover:bg-muted/60 transition-colors"
+                    >
+                      <td className="px-4 h-14 font-medium text-foreground">
+                        <Link
+                          to={`/clientes/${client.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded-sm hover:underline underline-offset-4"
+                        >
+                          {client.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 text-muted-foreground max-w-xs truncate">{client.email || "—"}</td>
+                      <td className="px-4 text-muted-foreground whitespace-nowrap tabular">{client.phone ? formatPhone(client.phone) : "—"}</td>
+                      <td className="px-4 text-muted-foreground whitespace-nowrap tabular">{client.document ? formatDocument(client.document) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Celular: lista */}
+            <ul className="lg:hidden card-elevated divide-y divide-border">
+              {filteredClients.map((client) => (
+                <li key={client.id}>
+                  <Link to={`/clientes/${client.id}`} className="block p-4 active:bg-muted/60">
+                    <p className="text-sm font-medium text-foreground truncate">{client.name}</p>
+                    <p className="text-sm text-muted-foreground truncate mt-0.5">{client.email || "Sem email"}</p>
+                    {client.phone && <p className="text-sm text-muted-foreground tabular">{formatPhone(client.phone)}</p>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </div>

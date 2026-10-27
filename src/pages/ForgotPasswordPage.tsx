@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
           {!sent ? (
             <div className="animate-slide-up">
               <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary rounded-2xl mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary rounded-lg mb-4">
                   <Mail className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground">Esqueceu a senha?</h2>

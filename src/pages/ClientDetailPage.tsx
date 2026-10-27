@@ -1,25 +1,44 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { formatPhone, formatDocument, formatCEP } from "@/lib/formatters";
+import { Link, useParams } from "react-router-dom";
+import { format, isValid, parseISO } from "date-fns";
+import { Mail, Pencil, Phone } from "lucide-react";
 import { TopNav } from "@/components/layout/TopNav";
+import { DesktopHeader } from "@/components/layout/DesktopHeader";
 import { Button } from "@/components/ui/button";
-import { Edit, User, Mail, Phone, FileText, MapPin, Calendar } from "lucide-react";
-
-import { Client } from "@/types";
-
+import { Skeleton } from "@/components/ui/skeleton";
 import { useClients } from "@/hooks/useClients";
+import { useCustomFieldDefinitions } from "@/hooks/useCustomFieldDefinitions";
+import { formatCEP, formatDocument, formatPhone } from "@/lib/formatters";
+import { printableValue } from "@/lib/customFields";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="card-elevated">
+      <h2 className="px-4 pt-4 text-sm font-semibold text-foreground">{title}</h2>
+      <div className="p-4 pt-3">{children}</div>
+    </section>
+  );
+}
+
+// Data salva como "yyyy-MM-dd": new Date() leria em UTC e mostraria o dia anterior.
+const shortDate = (value?: string) => {
+  const date = value ? parseISO(value) : undefined;
+  return date && isValid(date) ? format(date, "dd/MM/yyyy") : "";
+};
 
 export default function ClientDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { clients, isLoading } = useClients();
+  const { fields: clientFields } = useCustomFieldDefinitions("client");
 
-  const client = clients?.find(c => c.id === id);
+  const client = clients?.find((c) => c.id === id);
 
   if (isLoading) {
     return (
       <div className="page-container bg-background">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="content-container space-y-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-40 w-full" />
         </div>
       </div>
     );
@@ -30,117 +49,135 @@ export default function ClientDetailPage() {
       <div className="page-container bg-background">
         <TopNav title="Cliente" showBack />
         <div className="content-container">
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">Cliente não encontrado</p>
+          <div className="card-elevated p-10 text-center">
+            <p className="font-medium text-foreground">Cliente não encontrado</p>
+            <p className="text-sm text-muted-foreground mt-1">Ele pode ter sido excluído.</p>
+            <Button asChild variant="outline" className="mt-4 h-9">
+              <Link to="/clientes">Ver todos os clientes</Link>
+            </Button>
           </div>
         </div>
       </div>
     );
   }
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("pt-BR");
-  };
+  const birthDate = shortDate(client.birthDate);
+  const customFields = clientFields.flatMap((field) => {
+    const value = printableValue(client.customFields?.[field.id]);
+    return value ? [{ name: field.name, value }] : [];
+  });
 
   return (
     <div className="page-container bg-background">
-      <TopNav
-        title="Cliente"
-        showBack
-        rightAction={
-          <Button
-            size="icon"
-            aria-label="Editar cliente"
-            variant="ghost"
-            onClick={() => navigate(`/clientes/${id}/editar`)}
-            className="text-primary hover:text-primary/80"
-          >
-            <Edit className="w-5 h-5" />
+      <DesktopHeader
+        title={client.name}
+        actions={
+          <Button asChild variant="outline" className="h-9">
+            <Link to={`/clientes/${client.id}/editar`}>
+              <Pencil className="w-4 h-4 mr-1.5" />
+              Editar
+            </Link>
           </Button>
         }
       />
 
-      <div className="content-container space-y-6">
-        {/* Header */}
-        <div className="card-elevated p-6 text-center animate-fade-in">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <User className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground">{client.name}</h2>
-          <p className="text-sm text-muted-foreground">{formatDocument(client.document)}</p>
-        </div>
+      <div className="lg:hidden">
+        <TopNav
+          title="Cliente"
+          showBack
+          rightAction={
+            <Button asChild size="icon" variant="ghost" aria-label="Editar cliente">
+              <Link to={`/clientes/${client.id}/editar`}>
+                <Pencil className="w-5 h-5" />
+              </Link>
+            </Button>
+          }
+        />
+      </div>
 
-        {/* Contact Info */}
-        <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Contato</h3>
-          <div className="space-y-3">
+      <div className="content-container lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start space-y-4 lg:space-y-0">
+        <div className="lg:col-span-2 space-y-4">
+          {/* Resumo */}
+          <section className="card-elevated p-4 lg:p-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                <Mail className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="text-sm text-foreground">{client.email}</p>
+              {client.avatar && (
+                <img src={client.avatar} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" />
+              )}
+              <div className="min-w-0">
+                {/* No desktop o nome já é o título da página. */}
+                <h2 className="text-lg font-semibold text-foreground lg:sr-only">{client.name}</h2>
+                <p className="text-sm text-muted-foreground tabular lg:hidden">{formatDocument(client.document)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                <Phone className="w-4 h-4 text-muted-foreground" />
+            <dl className="mt-3 lg:mt-0 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+              <div className="hidden lg:block">
+                <dt className="text-muted-foreground">CPF / CNPJ</dt>
+                <dd className="text-foreground tabular">{formatDocument(client.document)}</dd>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Telefone</p>
-                <p className="text-sm text-foreground">{formatPhone(client.phone)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Data Nasc. / Abertura</p>
-                <p className="text-sm text-foreground">{formatDate(client.birthDate)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Addresses */}
-        <div className="card-elevated p-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Endereços</h3>
-          {client.addresses.length > 0 ? (
-            <div className="space-y-4">
-              {client.addresses.map((address) => (
-                <div key={address.id} className="flex items-start gap-3 border-b border-border/50 last:border-0 pb-4 last:pb-0">
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm text-foreground">{address.label}</span>
-                      {address.isDefault && (
-                        <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-                          Padrão
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-foreground">
-                      {address.street}, {address.number}
-                      {address.complement && ` - ${address.complement}`}
-                    </p>
-                    <p className="text-sm text-foreground">
-                      {address.neighborhood}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {address.city} - {address.state}
-                    </p>
-                    <p className="text-sm text-muted-foreground">CEP: {formatCEP(address.cep)}</p>
-                  </div>
+              {birthDate && (
+                <div>
+                  <dt className="text-muted-foreground">Nascimento / abertura</dt>
+                  <dd className="text-foreground tabular">{birthDate}</dd>
+                </div>
+              )}
+              {customFields.map((field) => (
+                <div key={field.name}>
+                  <dt className="text-muted-foreground">{field.name}</dt>
+                  <dd className="text-foreground">{field.value}</dd>
                 </div>
               ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>
-          )}
+            </dl>
+          </section>
+
+          <Section title="Endereços">
+            {client.addresses.length > 0 ? (
+              <ul className="divide-y divide-border -my-3">
+                {client.addresses.map((address) => (
+                  <li key={address.id} className="py-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{address.label}</span>
+                      {address.isDefault && (
+                        <span className="status-badge bg-accent text-accent-foreground">Padrão</span>
+                      )}
+                    </div>
+                    <p className="text-foreground mt-0.5">
+                      {address.street}, {address.number}
+                      {address.complement && ` - ${address.complement}`}
+                      {address.neighborhood && ` · ${address.neighborhood}`}
+                    </p>
+                    <p className="text-muted-foreground tabular">
+                      {address.city} - {address.state} · CEP {formatCEP(address.cep)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>
+            )}
+          </Section>
+        </div>
+
+        <div className="space-y-4">
+          <Section title="Contato">
+            {client.phone || client.email ? (
+              <div className="space-y-1">
+                {client.phone && (
+                  <a href={`tel:${client.phone.replace(/\D/g, "")}`} className="flex items-center gap-2 h-9 max-md:h-11 text-sm text-primary hover:underline underline-offset-4">
+                    <Phone className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    {formatPhone(client.phone)}
+                  </a>
+                )}
+                {client.email && (
+                  <a href={`mailto:${client.email}`} className="flex items-center gap-2 h-9 max-md:h-11 text-sm text-primary hover:underline underline-offset-4 min-w-0">
+                    <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{client.email}</span>
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum contato cadastrado.</p>
+            )}
+          </Section>
         </div>
       </div>
     </div>

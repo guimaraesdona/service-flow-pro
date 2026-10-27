@@ -1,8 +1,7 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,6 @@ export default function NewServicePage() {
   const navigate = useNavigate();
   const { createService } = useServices();
   const { deleteImage } = useStorage();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const { fields: customFieldsDefinitions } = useCustomFieldDefinitions("service");
@@ -136,97 +134,105 @@ export default function NewServicePage() {
         description: `${formData.name} foi adicionado com sucesso.`,
       });
       navigate("/servicos");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro ao cadastrar",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Não foi possível cadastrar o serviço.",
         variant: "destructive",
       });
     }
   };
 
+  const fieldError = (field: string) =>
+    errors[field] ? (
+      <p id={`${field}-error`} role="alert" className="text-xs font-semibold text-destructive">
+        {errors[field]}
+      </p>
+    ) : null;
+
+  const inputClass = (field: string) =>
+    `input-field ${errors[field] ? "border-destructive focus-visible:ring-destructive" : ""}`;
+
   return (
     <div className="page-container bg-background">
-      {/* Mobile Header */}
       <div className="lg:hidden">
-        <TopNav title="Novo Serviço" showBack />
+        <TopNav title="Novo serviço" showBack />
       </div>
-
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        <DesktopHeader title="Novo Serviço" />
-      </div>
+      <DesktopHeader title="Novo serviço" />
 
       <div className="content-container">
-        <form onSubmit={handleSubmit} className="space-y-5 animate-slide-up lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
-          {/* Left Column */}
-          <div className="space-y-5">
-            {/* Image */}
-            <div className="flex justify-center mb-6 lg:justify-start">
-              <ImageUploader
-                value={imageUrl}
-                onChange={handleImageChange}
-              />
-            </div>
+        <form onSubmit={handleSubmit} noValidate className="max-w-2xl mx-auto space-y-4">
+          <section className="card-elevated p-4 lg:p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">Serviço</h2>
+            <ImageUploader value={imageUrl} onChange={handleImageChange} />
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nome do Serviço *</Label>
+              <Label htmlFor="name">Nome do serviço *</Label>
               <Input
-                id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
-                placeholder="Ex: Manutenção Preventiva"
+                id="name"
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? "name-error" : undefined}
+                placeholder="Ex: Manutenção preventiva"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 onBlur={() => handleBlur("name")}
-                className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                required
+                className={inputClass("name")}
               />
-              {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
+              {fieldError("name")}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
-                placeholder="Descreva o serviço..."
+                placeholder="O que está incluído no serviço"
                 value={formData.description}
                 onChange={(e) => updateField("description", e.target.value)}
                 className="min-h-24 resize-none"
               />
             </div>
+          </section>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Valor Base (R$) *</Label>
+          <section className="card-elevated p-4 lg:p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">Preço</h2>
+            <div className="space-y-2 sm:max-w-xs">
+              <Label htmlFor="price">Valor base (R$) *</Label>
               <Input
-                id="price" aria-invalid={!!errors.price} aria-describedby={errors.price ? "price-error" : undefined}
+                id="price"
+                aria-invalid={!!errors.price}
+                aria-describedby={errors.price ? "price-error" : "price-hint"}
                 type="number"
+                inputMode="decimal"
                 step="0.01"
                 placeholder="0,00"
                 value={formData.price}
                 onChange={(e) => updateField("price", e.target.value)}
                 onBlur={() => handleBlur("price")}
-                className={`input-field ${errors.price ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                required
+                className={`${inputClass("price")} tabular`}
               />
-               {errors.price && <p id="price-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.price}</p>}
+              {fieldError("price") ?? (
+                <p id="price-hint" className="text-xs text-muted-foreground">
+                  Sugerido ao adicionar o serviço numa OS; dá para mudar em cada ordem.
+                </p>
+              )}
             </div>
-          </div>
+          </section>
 
-          {/* Right Column */}
-          <div className="space-y-5">
-            {/* Custom Fields */}
-            <CustomFieldsRenderer
-              entityType="service"
-              values={customFieldValues}
-              onValuesChange={setCustomFieldValues}
-              errors={customFieldErrors}
-            />
+          {customFieldsDefinitions.length > 0 && (
+            <section className="card-elevated p-4 lg:p-5 space-y-4">
+              <h2 className="text-sm font-semibold text-foreground">Campos personalizados</h2>
+              <CustomFieldsRenderer
+                entityType="service"
+                values={customFieldValues}
+                onValuesChange={setCustomFieldValues}
+                errors={customFieldErrors}
+              />
+            </section>
+          )}
 
-            <Button
-              type="submit"
-              className="w-full btn-primary mt-6"
-              disabled={createService.isPending}
-            >
-              {createService.isPending ? "Salvando..." : "Cadastrar"}
+          <div className="flex lg:justify-end">
+            <Button type="submit" className="w-full lg:w-auto lg:px-8 btn-primary" disabled={createService.isPending}>
+              {createService.isPending ? "Salvando..." : "Cadastrar serviço"}
             </Button>
           </div>
         </form>

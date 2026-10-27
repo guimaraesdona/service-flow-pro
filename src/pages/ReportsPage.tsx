@@ -1,20 +1,13 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  FileText,
-  Download,
-  Mail,
-  Calendar,
-  User,
-  FileSpreadsheet,
-  File
-} from "lucide-react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useClients } from "@/hooks/useClients";
 import { useOrders } from "@/hooks/useOrders";
+import { formatCurrency, formatOrderNumber } from "@/lib/formatters";
 
 const months = [
   { value: "01", label: "Janeiro" },
@@ -34,201 +27,169 @@ const months = [
 const currentYear = new Date().getFullYear();
 const years = [currentYear.toString(), (currentYear - 1).toString(), (currentYear - 2).toString()];
 
+const shortDate = (date: string) => new Date(date).toLocaleDateString("pt-BR");
+
 export default function ReportsPage() {
   const { clients } = useClients();
   const { orders } = useOrders();
 
-  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, "0"));
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [selectedClient, setSelectedClient] = useState("all");
 
+  // OS abertas no mês escolhido, mais recentes primeiro.
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
-    return orders.filter(order => {
-      const orderDate = new Date(order.date);
-      const monthMatch = String(orderDate.getMonth() + 1).padStart(2, '0') === selectedMonth;
-      const yearMatch = String(orderDate.getFullYear()) === selectedYear;
-      const clientMatch = selectedClient === "all" || order.clientId === selectedClient;
-
-      // Filter out cancelled orders for revenue calculations, but maybe keep them for general listing if needed?
-      // For this report summary, let's keep all checks here, but specific metrics might exclude cancelled.
-      return monthMatch && yearMatch && clientMatch;
-    });
+    return orders
+      .filter((order) => {
+        const orderDate = new Date(order.date);
+        const monthMatch = String(orderDate.getMonth() + 1).padStart(2, "0") === selectedMonth;
+        const yearMatch = String(orderDate.getFullYear()) === selectedYear;
+        const clientMatch = selectedClient === "all" || order.clientId === selectedClient;
+        return monthMatch && yearMatch && clientMatch;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
   }, [orders, selectedMonth, selectedYear, selectedClient]);
 
+  // Canceladas contam como OS do período, mas não entram no faturamento.
   const metrics = useMemo(() => {
-    const validOrders = filteredOrders.filter(o => o.status !== "cancelled");
-    const totalOrders = filteredOrders.length;
-    const totalRevenue = validOrders.reduce((acc, order) => acc + order.total, 0);
-    const finishedCount = filteredOrders.filter(o => o.status === "finished").length;
-    const pendingCount = filteredOrders.filter(o => o.status !== "finished" && o.status !== "cancelled").length;
-
+    const validOrders = filteredOrders.filter((o) => o.status !== "cancelled");
     return {
-      totalOrders,
-      totalRevenue,
-      finishedCount,
-      pendingCount
+      totalOrders: filteredOrders.length,
+      totalRevenue: validOrders.reduce((acc, order) => acc + order.total, 0),
+      finishedCount: filteredOrders.filter((o) => o.status === "finished").length,
+      pendingCount: filteredOrders.filter((o) => o.status !== "finished" && o.status !== "cancelled").length,
     };
   }, [filteredOrders]);
 
-  const getMonthName = (value: string) => {
-    return months.find(m => m.value === value)?.label || "";
-  };
+  const stats = [
+    { label: "Ordens", value: String(metrics.totalOrders) },
+    { label: "Faturamento", value: formatCurrency(metrics.totalRevenue) },
+    { label: "Finalizadas", value: String(metrics.finishedCount) },
+    { label: "Pendentes", value: String(metrics.pendingCount) },
+  ];
 
-  const getClientName = (id: string) => {
-    if (id === "all") return "Todos os Clientes";
-    return clients?.find(c => c.id === id)?.name || "Cliente Desconhecido";
-  };
+  const periodLabel = `${months.find((m) => m.value === selectedMonth)?.label ?? ""} de ${selectedYear}`;
 
   return (
     <div className="page-container bg-background">
-      {/* Mobile Header */}
       <div className="lg:hidden">
-        <TopNav title="Relatórios" showBack />
+        <TopNav title="Relatórios" />
       </div>
+      <DesktopHeader title="Relatórios" />
 
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        <DesktopHeader title="Relatórios" />
-      </div>
-
-      <div className="content-container">
-        <div className="lg:grid lg:grid-cols-3 lg:gap-6">
-          {/* Filters */}
-          <div className="lg:col-span-1">
-            <div className="card-elevated p-6 mb-6 lg:mb-0 animate-fade-in">
-              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Filtros do Relatório
-              </h2>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="report-month">Mês</Label>
-                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                      <SelectTrigger id="report-month">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month) => (
-                          <SelectItem key={month.value} value={month.value}>
-                            {month.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="report-year">Ano</Label>
-                    <Select value={selectedYear} onValueChange={setSelectedYear}>
-                      <SelectTrigger id="report-year">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((year) => (
-                          <SelectItem key={year} value={year}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="report-client" className="flex items-center gap-2">
-                    <User className="w-4 h-4" aria-hidden="true" />
-                    Cliente
-                  </Label>
-                  <Select value={selectedClient} onValueChange={setSelectedClient}>
-                    <SelectTrigger id="report-client">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Clientes</SelectItem>
-                      {clients?.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Preview & Export */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Preview */}
-            <div className="card-elevated p-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Prévia do Relatório
-              </h2>
-
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-bold text-foreground">Relatório de Ordens de Serviço</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {getMonthName(selectedMonth)} de {selectedYear}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {getClientName(selectedClient)}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                  <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{metrics.totalOrders}</p>
-                    <p className="text-xs text-muted-foreground">Ordens</p>
-                  </div>
-                  <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-finished-fg">
-                      R$ {metrics.totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Faturamento</p>
-                  </div>
-                  <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-progress-fg">{metrics.finishedCount}</p>
-                    <p className="text-xs text-muted-foreground">Finalizadas</p>
-                  </div>
-                  <div className="bg-card p-3 rounded-lg">
-                    <p className="text-2xl font-bold text-status-waiting-fg">{metrics.pendingCount}</p>
-                    <p className="text-xs text-muted-foreground">Pendentes</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Export Options */}
-            <div className="card-elevated p-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-              <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Download className="w-5 h-5" />
-                Exportar Relatório
-              </h2>
-
-              <p className="text-sm text-muted-foreground mb-3">
-                Em breve. Por enquanto, use a impressão de cada ordem.
-              </p>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                {[
-                  { icon: File, label: "PDF" },
-                  { icon: FileSpreadsheet, label: "Excel" },
-                  { icon: Mail, label: "Envio por email" },
-                ].map(({ icon: Icon, label }) => (
-                  <Button key={label} className="w-full justify-start" variant="outline" disabled>
-                    <Icon className="w-5 h-5 mr-3" />
-                    {label}
-                  </Button>
+      <div className="content-container space-y-5">
+        {/* Filtros */}
+        <section aria-label="Filtros" className="grid grid-cols-2 lg:grid-cols-[10rem_8rem_minmax(0,18rem)] gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="report-month">Mês</Label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger id="report-month" className="bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
                 ))}
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="report-year">Ano</Label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger id="report-year" className="bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="col-span-2 lg:col-span-1 space-y-2">
+            <Label htmlFor="report-client">Cliente</Label>
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <SelectTrigger id="report-client" className="bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os clientes</SelectItem>
+                {clients?.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </section>
+
+        {/* Resumo do período */}
+        <section aria-labelledby="report-summary" className="space-y-2">
+          <h2 id="report-summary" className="px-1 text-sm font-semibold text-foreground">
+            {periodLabel}
+          </h2>
+          <dl className="card-elevated grid grid-cols-2 lg:grid-cols-4 [&>div]:border-border max-lg:[&>div:nth-child(-n+2)]:border-b max-lg:[&>div:nth-child(odd)]:border-r lg:[&>div:not(:last-child)]:border-r">
+            {stats.map((stat) => (
+              <div key={stat.label} className="p-4 lg:p-5">
+                <dt className="text-xs font-medium text-muted-foreground">{stat.label}</dt>
+                <dd className="mt-1 text-xl lg:text-2xl font-semibold tracking-tight text-foreground tabular">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Ordens do período */}
+        <section aria-labelledby="report-orders" className="space-y-2">
+          <h2 id="report-orders" className="px-1 text-sm font-semibold text-foreground">
+            Ordens do período
+          </h2>
+          {filteredOrders.length === 0 ? (
+            <div className="card-elevated p-8 text-center">
+              <p className="font-medium text-foreground">Nenhuma OS em {periodLabel.toLowerCase()}</p>
+              <p className="text-sm text-muted-foreground mt-1">Escolha outro mês ou cliente.</p>
+            </div>
+          ) : (
+            <ul className="card-elevated divide-y divide-border">
+              {filteredOrders.map((order) => (
+                <li key={order.id}>
+                  <Link
+                    to={`/ordens/${order.id}`}
+                    className="flex items-center gap-3 px-4 py-3 active:bg-muted/60 lg:hover:bg-muted/40"
+                  >
+                    <span className="w-14 shrink-0 text-sm font-semibold text-foreground tabular">{formatOrderNumber(order)}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-foreground truncate">{order.clientName}</span>
+                      <span className="flex items-center gap-2 mt-1 lg:hidden">
+                        <StatusBadge status={order.status} />
+                        <span className="text-xs text-muted-foreground tabular">{shortDate(order.date)}</span>
+                      </span>
+                    </span>
+                    <span className="hidden lg:block w-28 shrink-0 text-sm text-muted-foreground tabular">{shortDate(order.date)}</span>
+                    <span className="hidden lg:block w-32 shrink-0">
+                      <StatusBadge status={order.status} />
+                    </span>
+                    <span className="w-24 lg:w-28 shrink-0 text-right text-sm font-semibold text-foreground tabular whitespace-nowrap">
+                      {formatCurrency(order.total)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <p className="px-1 text-xs text-muted-foreground">
+          Exportar em PDF ou Excel ainda não está disponível. Por enquanto, imprima cada OS pela tela dela.
+        </p>
       </div>
     </div>
   );

@@ -95,7 +95,7 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-10 animate-fade-in">
-            <AppLogo size="lg" className="mb-4 shadow-soft" />
+            <AppLogo size="lg" className="mb-4" />
             <h1 className="text-3xl font-bold text-foreground">Bem-vindo</h1>
             <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
           </div>
@@ -168,7 +168,7 @@ export default function LoginPage() {
           </form>
 
           {/* Register Link */}
-          <p className="mt-10 text-center text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <p className="mt-10 text-center text-sm text-muted-foreground">
             Não tem conta?{" "}
             <Link to="/cadastro" className="font-semibold text-primary hover:text-primary/80 transition-colors">
               Cadastre-se

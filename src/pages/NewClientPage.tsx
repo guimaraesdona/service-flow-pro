@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopNav } from "@/components/layout/TopNav";
 import { DesktopHeader } from "@/components/layout/DesktopHeader";
-import { ArrowRight, Camera, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import { toast } from "@/hooks/use-toast";
 import { CustomFieldsRenderer, CustomFieldValue } from "@/components/form/CustomFieldsRenderer";
 import { AddressManager } from "@/components/client/AddressManager";
 import { Address } from "@/types";
-import { formatDocument, formatPhone } from "@/lib/formatters";
 import { maskPhone, maskDocument } from "@/utils/masks";
 import { validateEmail, validateDocument } from "@/utils/validations";
 
@@ -26,7 +25,6 @@ export default function NewClientPage() {
 
   const { createClient } = useClients();
   const { deleteImage } = useStorage();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValue[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -168,149 +166,167 @@ export default function NewClientPage() {
         description: `${formData.name} foi adicionado com sucesso.`,
       });
       navigate("/clientes");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro ao cadastrar",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Não foi possível cadastrar o cliente.",
         variant: "destructive",
       });
     }
   };
 
+  const inputClass = (field: string) =>
+    `input-field ${errors[field] ? "border-destructive focus-visible:ring-destructive" : ""}`;
+
+  const fieldError = (field: string) =>
+    errors[field] ? (
+      <p id={`${field}-error`} role="alert" className="text-xs font-semibold text-destructive">
+        {errors[field]}
+      </p>
+    ) : null;
+
+  const a11y = (field: string) => ({
+    id: field,
+    "aria-invalid": !!errors[field],
+    "aria-describedby": errors[field] ? `${field}-error` : undefined,
+  });
+
   return (
     <div className="page-container bg-background">
       <div className="lg:hidden">
-        <TopNav title="Novo Cliente" showBack />
+        <TopNav title="Novo cliente" showBack />
       </div>
-      <div className="hidden lg:block">
-        <DesktopHeader title="Novo Cliente" />
-      </div>
-
-      <div className="max-w-lg mx-auto w-full px-6 pt-4 lg:max-w-none lg:px-8">
-        <div className="flex items-center gap-2">
-          <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 1 ? "bg-primary" : "bg-secondary"}`} />
-          <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 2 ? "bg-primary" : "bg-secondary"}`} />
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">Passo {step} de 2</p>
-      </div>
+      <DesktopHeader title="Novo cliente" />
 
       <div className="content-container">
-        <form onSubmit={handleSubmit} className="lg:grid lg:grid-cols-2 lg:gap-8">
-          {step === 1 && (
-            <>
-              <div className="space-y-4 animate-slide-up">
-                <div className="flex justify-center mb-6 lg:justify-start">
-                  <ImageUploader
-                    value={avatarUrl}
-                    onChange={setAvatarUrl}
-                  />
-                </div>
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div>
+            <div className="flex items-center gap-2" aria-hidden="true">
+              <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 1 ? "bg-primary" : "bg-secondary"}`} />
+              <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 2 ? "bg-primary" : "bg-secondary"}`} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Passo {step} de 2 · {step === 1 ? "Dados do cliente" : "Endereços"}
+            </p>
+          </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome / Razão Social *</Label>
-                  <div className="space-y-1">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            {step === 1 && (
+              <>
+                <section className="card-elevated p-4 lg:p-5 space-y-4">
+                  <h2 className="text-sm font-semibold text-foreground">Dados</h2>
+                  <ImageUploader value={avatarUrl} onChange={handleImageChange} />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome / razão social *</Label>
                     <Input
-                      id="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined}
+                      {...a11y("name")}
                       placeholder="Nome completo"
                       value={formData.name}
                       onChange={(e) => updateField("name", e.target.value)}
                       onBlur={() => handleBlur("name")}
-                      className={`input-field ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      className={inputClass("name")}
                     />
-                    {errors.name && <p id="name-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.name}</p>}
+                    {fieldError("name")}
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <div className="space-y-1">
-                    <Input
-                      id="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
-                      type="email"
-                      placeholder="email@exemplo.com"
-                      value={formData.email}
-                      onChange={(e) => updateField("email", e.target.value)}
-                      onBlur={() => handleBlur("email")}
-                      className={`input-field ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {errors.email && <p id="email-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.email}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="document">CPF / CNPJ *</Label>
-                    <div className="space-y-1">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="document">CPF / CNPJ *</Label>
                       <Input
-                        id="document" aria-invalid={!!errors.document} aria-describedby={errors.document ? "document-error" : undefined}
+                        {...a11y("document")}
+                        inputMode="numeric"
                         placeholder="000.000.000-00"
                         value={formData.document}
                         onChange={(e) => updateField("document", e.target.value)}
                         onBlur={() => handleBlur("document")}
-                        className={`input-field ${errors.document ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                        className={inputClass("document")}
                         maxLength={18}
                       />
-                      {errors.document && <p id="document-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.document}</p>}
+                      {fieldError("document")}
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate">Data Nasc. / Abertura *</Label>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDate">Nascimento / abertura *</Label>
                       <DatePicker
                         id="birthDate"
+                        aria-describedby={errors.birthDate ? "birthDate-error" : undefined}
                         historical
                         value={formData.birthDate}
                         invalid={!!errors.birthDate}
                         onChange={(next) => updateField("birthDate", next)}
                         onBlur={() => handleBlur("birthDate")}
                       />
-                      {errors.birthDate && <p role="alert" className="text-xs font-medium text-destructive">{errors.birthDate}</p>}
+                      {fieldError("birthDate")}
                     </div>
                   </div>
-                </div>
+                </section>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone *</Label>
-                  <div className="space-y-1">
-                    <Input
-                      id="phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-error" : undefined}
-                      type="tel"
-                      placeholder="(00) 00000-0000"
-                      value={formData.phone}
-                      onChange={(e) => updateField("phone", e.target.value)}
-                      onBlur={() => handleBlur("phone")}
-                      className={`input-field ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                      maxLength={15}
-                    />
-                    {errors.phone && <p id="phone-error" role="alert" className="text-xs font-semibold text-destructive animate-fade-in">{errors.phone}</p>}
+                <section className="card-elevated p-4 lg:p-5 space-y-4">
+                  <h2 className="text-sm font-semibold text-foreground">Contato</h2>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        {...a11y("email")}
+                        type="email"
+                        placeholder="email@exemplo.com"
+                        value={formData.email}
+                        onChange={(e) => updateField("email", e.target.value)}
+                        onBlur={() => handleBlur("email")}
+                        className={inputClass("email")}
+                      />
+                      {fieldError("email")}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone *</Label>
+                      <Input
+                        {...a11y("phone")}
+                        type="tel"
+                        placeholder="(00) 00000-0000"
+                        value={formData.phone}
+                        onChange={(e) => updateField("phone", e.target.value)}
+                        onBlur={() => handleBlur("phone")}
+                        className={inputClass("phone")}
+                        maxLength={15}
+                      />
+                      {fieldError("phone")}
+                    </div>
                   </div>
+                </section>
+
+                {customFieldsDefinitions.length > 0 && (
+                  <section className="card-elevated p-4 lg:p-5 space-y-4">
+                    <h2 className="text-sm font-semibold text-foreground">Campos personalizados</h2>
+                    <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
+                  </section>
+                )}
+
+                <div className="flex lg:justify-end">
+                  <Button type="button" onClick={handleNext} className="w-full lg:w-auto lg:px-8 btn-primary">
+                    Próximo <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
-              </div>
+              </>
+            )}
 
-              <div className="space-y-4 animate-slide-up mt-4 lg:mt-0">
-                <CustomFieldsRenderer entityType="client" values={customFieldValues} onValuesChange={setCustomFieldValues} errors={customFieldErrors} />
-                <Button type="button" onClick={handleNext} className="w-full btn-primary mt-6">
-                  Próximo <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </>
-          )}
+            {step === 2 && (
+              <>
+                <section className="card-elevated p-4 lg:p-5">
+                  <AddressManager addresses={addresses} onAddressesChange={setAddresses} />
+                </section>
 
-          {step === 2 && (
-            <>
-              <div className="space-y-4 animate-slide-up">
-                <AddressManager addresses={addresses} onAddressesChange={setAddresses} />
-              </div>
-
-              <div className="space-y-4 animate-slide-up mt-4 lg:mt-0">
-                <div className="flex gap-3">
-                  <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">Voltar</Button>
-                  <Button type="submit" className="flex-1 btn-primary" disabled={createClient.isPending}>{createClient.isPending ? "Salvando..." : "Cadastrar"}</Button>
+                <div className="flex gap-3 lg:justify-end">
+                  <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 lg:flex-none lg:px-6">
+                    Voltar
+                  </Button>
+                  <Button type="submit" className="flex-1 lg:flex-none lg:px-8 btn-primary" disabled={createClient.isPending}>
+                    {createClient.isPending ? "Salvando..." : "Cadastrar cliente"}
+                  </Button>
                 </div>
-              </div>
-            </>
-          )}
-        </form>
+              </>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );
