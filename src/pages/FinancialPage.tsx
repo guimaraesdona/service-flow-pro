@@ -293,7 +293,7 @@ export default function FinancialPage() {
           </div>
         </section>
 
-        <div role="group" aria-label="Filtrar pagamentos" className="-mx-4 px-4 lg:mx-0 lg:px-0 -mt-2 pt-2 pb-1 flex gap-1.5 overflow-x-auto">
+        <div role="group" aria-label="Filtrar pagamentos" className="flex flex-wrap gap-1.5">
           {(Object.keys(FILTER_LABEL) as Filter[]).map((value) => {
             const active = filter === value;
             return (
